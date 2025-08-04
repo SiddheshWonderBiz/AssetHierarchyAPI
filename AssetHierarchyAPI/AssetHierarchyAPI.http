@@ -1,0 +1,6 @@
+@AssetHierarchyAPI_HostAddress = http://localhost:5222
+
+GET {{AssetHierarchyAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

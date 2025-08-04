@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AssetNode xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Id>1</Id>
+  <Name>Root</Name>
+  <Children>
+    <AssetNode>
+      <Id>2</Id>
+      <Name>Child 1</Name>
+      <Children />
+    </AssetNode>
+    <AssetNode>
+      <Id>3</Id>
+      <Name>Child 2</Name>
+      <Children />
+    </AssetNode>
+  </Children>
+</AssetNode>

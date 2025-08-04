@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36310.24 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AssetHierarchyAPI", "AssetHierarchyAPI\AssetHierarchyAPI.csproj", "{D0328D07-AB37-42BF-89FD-64E9BCE214BD}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D0328D07-AB37-42BF-89FD-64E9BCE214BD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D0328D07-AB37-42BF-89FD-64E9BCE214BD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D0328D07-AB37-42BF-89FD-64E9BCE214BD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D0328D07-AB37-42BF-89FD-64E9BCE214BD}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {7361C73E-F36E-47B7-A406-49B60F8DDDF3}
+	EndGlobalSection
+EndGlobal
