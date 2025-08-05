@@ -19,6 +19,11 @@ namespace AssetHierarchyAPI.Services
         public void AddNode(int parentId, AssetNode newNode)
         {
             var root = _storage.LoadHierarchy();
+            if(NodeExists(root , newNode.Id))
+            {
+                throw new InvalidOperationException($"A node with ID {newNode.Id} already exists.");
+            }
+
             var parent = FindNode(root, parentId);
             if (parent != null)
             {
@@ -27,17 +32,15 @@ namespace AssetHierarchyAPI.Services
             }
         }
 
-        public void RemoveNode(int nodeId)
+        public bool NodeExists(AssetNode curr , int id)
         {
-            var root = _storage.LoadHierarchy();
-            if (root.Id == nodeId)
-                throw new InvalidOperationException("Cannot remove root node");
-
-            RemoveNodeRecursive(root, nodeId);
-            _storage.SaveHierarchy(root);
+            if(curr.Id == id) return true;
+            foreach (var child in curr.Children) { 
+            if (NodeExists(child, id)) return true;
+            }
+            return false;
         }
 
-        // helper methods: FindNode & RemoveNodeRecursive
         private AssetNode FindNode(AssetNode current, int id)
         {
             if (current.Id == id)
@@ -51,6 +54,22 @@ namespace AssetHierarchyAPI.Services
             }
 
             return null;
+        }
+
+        public void RemoveNode(int nodeId)
+        {
+            var root = _storage.LoadHierarchy();
+            if (root.Id == nodeId)
+            {
+                _storage.SaveHierarchy(null);
+                return;
+            }
+
+            bool removed = RemoveNodeRecursive(root, nodeId);
+            if (!removed) {
+                throw new InvalidOperationException($"Node not found {nodeId}");
+            }
+            _storage.SaveHierarchy(root);
         }
 
         private bool RemoveNodeRecursive(AssetNode parent, int nodeId)

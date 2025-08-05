@@ -1,16 +1,14 @@
 using AssetHierarchyAPI.Interfaces;
 using AssetHierarchyAPI.Services;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.DependencyInjection; // Add this using directive
-using Microsoft.OpenApi.Models;                // Add this using directive if needed for AddSwaggerGen
-
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.OpenApi.Models;               
 var builder = WebApplication.CreateBuilder(args);
 var storageType = builder.Configuration["StorageType"];
 
-// Add services to the container.
 builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();         // ? This line is required
-builder.Services.AddSwaggerGen();     // ? This line is required
+builder.Services.AddEndpointsApiExplorer();         
+builder.Services.AddSwaggerGen();     
 if(storageType == "XML")
 {
     builder.Services.AddSingleton<IHierarchyStorage , XmlHierarchyStorage>();
@@ -24,11 +22,10 @@ builder.Services.AddSingleton<IHierarchyService, HierarchyService>();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();                              // ? This line is required
-    app.UseSwaggerUI();                            // ? This line is required
+    app.UseSwagger();                              
+    app.UseSwaggerUI();                           
 }
 
 app.UseHttpsRedirection();

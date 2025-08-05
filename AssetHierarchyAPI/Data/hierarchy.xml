@@ -8,10 +8,5 @@
       <Name>Child 1</Name>
       <Children />
     </AssetNode>
-    <AssetNode>
-      <Id>3</Id>
-      <Name>Child 2</Name>
-      <Children />
-    </AssetNode>
   </Children>
 </AssetNode>

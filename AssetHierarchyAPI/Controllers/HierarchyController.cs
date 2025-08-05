@@ -19,24 +19,51 @@ namespace AssetHierarchyAPI.Controllers
         [HttpGet]
         public IActionResult GetHierarchy()
         {
-            var tree = _service.LoadHierarchy();
-            return Ok(tree);
+            try
+            {
+                var tree = _service.LoadHierarchy();
+                return Ok(tree);
+            }
+            catch (Exception ex) {
+                return StatusCode(500, ex.Message);
+            }
         }
 
         
         [HttpPost("add")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(409)]
+        [ProducesResponseType(500)]
         public IActionResult AddNode(int parentId, [FromBody] AssetNode newNode)
         {
-            _service.AddNode(parentId, newNode);
-            return Ok("Node added successfully");
+            try
+            {
+                _service.AddNode(parentId, newNode);
+                return Ok("Node added successfully");
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+            catch (Exception ex) { 
+                return StatusCode(500 , new {error = "Unexpected error occured "});
+            }
         }
 
        
         [HttpDelete("remove/{id}")]
         public IActionResult RemoveNode(int id)
         {
-            _service.RemoveNode(id);
-            return Ok("Node removed successfully");
+            try
+            {
+                _service.RemoveNode(id);
+                return Ok("Node removed successfully");
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
         }
     }
 }
