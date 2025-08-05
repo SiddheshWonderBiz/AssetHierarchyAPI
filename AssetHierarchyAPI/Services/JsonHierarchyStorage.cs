@@ -22,5 +22,6 @@ namespace AssetHierarchyAPI.Services
             var json = JsonSerializer.Serialize(root, new JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText(filePath, json);
         }
+
     }
 }
