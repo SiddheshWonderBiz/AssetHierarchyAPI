@@ -1,27 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <AssetNode xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
   <Id>1</Id>
-  <Name>Root</Name>
+  <Name>Digging operation</Name>
   <Children>
     <AssetNode>
       <Id>2</Id>
-      <Name>Child 1</Name>
+      <Name>Dig 1</Name>
       <Children>
         <AssetNode>
           <Id>3</Id>
-          <Name>child</Name>
+          <Name>Rig 1</Name>
           <Children />
-        </AssetNode>
-        <AssetNode>
-          <Id>4</Id>
-          <Name>child</Name>
-          <Children>
-            <AssetNode>
-              <Id>5</Id>
-              <Name>new baby</Name>
-              <Children />
-            </AssetNode>
-          </Children>
         </AssetNode>
       </Children>
     </AssetNode>

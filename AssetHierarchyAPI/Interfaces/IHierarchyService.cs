@@ -8,5 +8,7 @@ namespace AssetHierarchyAPI.Interfaces
         AssetNode LoadHierarchy();
         void AddNode(int parentId, AssetNode newNode);
         void RemoveNode(int nodeId);
+
+        void ReplaceTree(AssetNode node);
     }
 }

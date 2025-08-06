@@ -86,5 +86,10 @@ namespace AssetHierarchyAPI.Services
             }
             return false;
         }
+        public void ReplaceTree(AssetNode newroot)
+        {
+            var root = newroot;
+            _storage.SaveHierarchy(root);
+        }
     }
 }
