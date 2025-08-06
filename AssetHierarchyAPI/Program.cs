@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
 using System.Threading.RateLimiting;
+using AssetHierarchyAPI.Middleware;
 var builder = WebApplication.CreateBuilder(args);
 var storageType = builder.Configuration["StorageType"];
 
@@ -41,7 +42,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseAuthorization();
+
+app.UseMiddleware<RateLimiterMiddleware>();
+//app.UseAuthorization();
 
 app.MapControllers();
 
