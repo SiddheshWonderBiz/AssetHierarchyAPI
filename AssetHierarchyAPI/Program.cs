@@ -15,24 +15,8 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddStorageService(builder.Configuration);
 
 
-//builder.Services.AddRateLimiter(options =>
-//{
-//    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext , string> (httpcontext =>
-//    RateLimitPartition.GetFixedWindowLimiter(
-//        partitionKey : httpcontext.Request.Headers.Host.ToString(),
-//        factory : _ => new FixedWindowRateLimiterOptions
-//        {
-//            PermitLimit = 5 ,
-//            Window = TimeSpan.FromMinutes(1),
-//            QueueLimit = 0 ,
-//            AutoReplenishment = true
-//        }
-        
-        
-//        ));
-//});
+
 var app = builder.Build();
-//app.UseRateLimiter();
 
 
 if (app.Environment.IsDevelopment())
@@ -43,8 +27,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseMiddleware<RateLimiterMiddleware>();
-//app.UseAuthorization();
+app.UseMiddleware<ImportFormatValidationMiddleware>();
+app.UseAuthorization();
 
 app.MapControllers();
 

@@ -21,6 +21,7 @@ namespace AssetHierarchyAPI.Extensions
                 services.AddSingleton<IHierarchyStorage, JsonHierarchyStorage>();
             }
             services.AddSingleton<IHierarchyService, HierarchyService>();
+            services.AddSingleton<ILoggingService, LoggingService>();
             return services;
 
 

@@ -1,8 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using AssetHierarchyAPI.Interfaces;
 using AssetHierarchyAPI.Models;
-using AssetHierarchyAPI.Interfaces;
-using System.Text.Json;
+using Microsoft.AspNetCore.Mvc;
 using System.Globalization;
+using System.Text.Json;
+using System.Xml.Serialization;
 
 namespace AssetHierarchyAPI.Controllers
 {
@@ -12,11 +13,13 @@ namespace AssetHierarchyAPI.Controllers
     {
         private readonly IHierarchyService _service;
         private readonly IWebHostEnvironment _env;
+        private readonly IConfiguration _configuration;
 
-        public HierarchyController(IHierarchyService service , IWebHostEnvironment env )
+        public HierarchyController(IHierarchyService service , IWebHostEnvironment env  , IConfiguration configuration)
         {
             _service = service;
             _env = env;
+            _configuration = configuration;
         }
 
         
@@ -74,7 +77,8 @@ namespace AssetHierarchyAPI.Controllers
 
         public async Task<IActionResult> UploadFile(IFormFile file)
         {
-            if (file == null || file.Length == 0) {
+            if (file == null || file.Length == 0)
+            {
                 return BadRequest("File Invalid");
             }
 
@@ -83,25 +87,40 @@ namespace AssetHierarchyAPI.Controllers
                 using var sr = new StreamReader(file.OpenReadStream());
                 var data = await sr.ReadToEndAsync();
 
-                var options = new JsonSerializerOptions
+                AssetNode newTree;
+
+                // Get storage type from config
+                var storageType = _configuration["StorageType"];
+
+                if (storageType == "XML")
                 {
-                    PropertyNameCaseInsensitive = true,
-                };
-                var NewTree = JsonSerializer.Deserialize<AssetNode>(data, options);
-                if (NewTree == null || NewTree.Id == null) { 
-                return BadRequest("Invalid Json file");
+                    var serializer = new XmlSerializer(typeof(AssetNode));
+                    using var reader = new StringReader(data);
+                    newTree = (AssetNode)serializer.Deserialize(reader);
+                }
+                else // JSON
+                {
+                    var options = new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true,
+                    };
+                    newTree = JsonSerializer.Deserialize<AssetNode>(data, options);
                 }
 
-                _service.ReplaceTree(NewTree);
-                return Ok("File uploaded successfully");
+                if (newTree == null)
+                {
+                    return BadRequest($"Invalid {storageType} file");
+                }
 
+                _service.ReplaceTree(newTree);
+                return Ok("File uploaded successfully");
             }
             catch (Exception ex)
             {
-                return StatusCode(500 , new {   error = ex.Message });
+                return StatusCode(500, new { error = ex.Message });
             }
-            
         }
+
 
         [HttpGet("download")]
 
