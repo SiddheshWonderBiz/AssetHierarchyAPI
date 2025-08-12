@@ -22,13 +22,7 @@
     <AssetNode>
       <Id>5</Id>
       <Name>Machine 2</Name>
-      <Children>
-        <AssetNode>
-          <Id>6</Id>
-          <Name>Machine 2.2</Name>
-          <Children />
-        </AssetNode>
-      </Children>
+      <Children />
     </AssetNode>
   </Children>
 </AssetNode>

@@ -47,7 +47,8 @@ namespace AssetHierarchyAPI.Controllers
             try
             {
                 _service.AddNode(parentId, newNode);
-                return Ok("Node added successfully");
+                return Ok(new { message = "Node added successfully" });
+
             }
             catch (InvalidOperationException ex)
             {
@@ -65,7 +66,8 @@ namespace AssetHierarchyAPI.Controllers
             try
             {
                 _service.RemoveNode(id);
-                return Ok("Node removed successfully");
+                return Ok(new { message = "Node removed successfully" });
+
             }
             catch (InvalidOperationException ex)
             {
