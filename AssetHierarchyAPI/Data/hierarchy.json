@@ -8,12 +8,12 @@
       "Children": [
         {
           "Id": 3,
-          "Name": "Component 1",
+          "Name": "Part A",
           "Children": []
         },
         {
           "Id": 4,
-          "Name": "Component 2",
+          "Name": "Part B",
           "Children": []
         }
       ]
@@ -21,7 +21,13 @@
     {
       "Id": 5,
       "Name": "Machine 2",
-      "Children": []
+      "Children": [
+        {
+          "Id": 6,
+          "Name": "Part C",
+          "Children": []
+        }
+      ]
     }
   ]
 }

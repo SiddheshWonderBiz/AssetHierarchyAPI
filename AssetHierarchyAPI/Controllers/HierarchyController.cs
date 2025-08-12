@@ -89,7 +89,6 @@ namespace AssetHierarchyAPI.Controllers
 
                 AssetNode newTree;
 
-                // Get storage type from config
                 var storageType = _configuration["StorageType"];
 
                 if (storageType == "XML")
@@ -98,7 +97,7 @@ namespace AssetHierarchyAPI.Controllers
                     using var reader = new StringReader(data);
                     newTree = (AssetNode)serializer.Deserialize(reader);
                 }
-                else // JSON
+                else
                 {
                     var options = new JsonSerializerOptions
                     {
@@ -111,9 +110,11 @@ namespace AssetHierarchyAPI.Controllers
                 {
                     return BadRequest($"Invalid {storageType} file");
                 }
-
+                int idCounter = 1;
+                _service.AssignIds(newTree, ref idCounter);
                 _service.ReplaceTree(newTree);
-                return Ok("File uploaded successfully");
+               
+                return Ok(new { message = "Hierarchy updated successfully" });
             }
             catch (Exception ex)
             {

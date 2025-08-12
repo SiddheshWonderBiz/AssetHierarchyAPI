@@ -7,7 +7,7 @@ namespace AssetHierarchyAPI.Services
     {
         private readonly IHierarchyStorage _storage;
         private readonly ILoggingService _logger;
-
+        private int _nextId = 1;
         public HierarchyService(IHierarchyStorage storage, ILoggingService logger)
         {
             _storage = storage;
@@ -23,6 +23,7 @@ namespace AssetHierarchyAPI.Services
             var root = _storage.LoadHierarchy();
             if (NodeExists(root, newNode.Id))
             {
+                _logger.LogError($"Node with ID {newNode.Id} already exists.");
                 throw new InvalidOperationException($"A node with ID {newNode.Id} already exists.");
             }
 
@@ -131,7 +132,7 @@ namespace AssetHierarchyAPI.Services
 
         private void AssignMissingIds(AssetNode node, ref int maxId)
         {
-            if (node.Id <= 0) // Missing or invalid ID
+            if (node.Id <= 0)
             {
                 maxId++;
                 node.Id = maxId;
@@ -151,5 +152,16 @@ namespace AssetHierarchyAPI.Services
             }
             return count;
         }
+        public void AssignIds(AssetNode node, ref int currentId)
+        {
+            if (node == null) return;
+
+            node.Id = currentId++;
+            foreach (var child in node.Children)
+            {
+                AssignIds(child, ref currentId);
+            }
+        }
+
     }
 }

@@ -9,12 +9,12 @@
       <Children>
         <AssetNode>
           <Id>3</Id>
-          <Name>Component 1</Name>
+          <Name>Sensor A</Name>
           <Children />
         </AssetNode>
         <AssetNode>
           <Id>4</Id>
-          <Name>Component 2</Name>
+          <Name>Sensor B</Name>
           <Children />
         </AssetNode>
       </Children>
@@ -22,7 +22,13 @@
     <AssetNode>
       <Id>5</Id>
       <Name>Machine 2</Name>
-      <Children />
+      <Children>
+        <AssetNode>
+          <Id>6</Id>
+          <Name>Machine 2.2</Name>
+          <Children />
+        </AssetNode>
+      </Children>
     </AssetNode>
   </Children>
 </AssetNode>
