@@ -10,6 +10,8 @@ namespace AssetHierarchyAPI.Interfaces
         void RemoveNode(int nodeId);
 
         void AssignIds(AssetNode root, ref int currentId);
+
+        int CountNodes(AssetNode node);
         void ReplaceTree(AssetNode node);
     }
 }

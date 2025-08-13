@@ -29,7 +29,8 @@ namespace AssetHierarchyAPI.Controllers
             try
             {
                 var tree = _service.LoadHierarchy();
-                return Ok(tree);
+                int totalNodes = _service.CountNodes(tree);
+                return Ok(new {tree , totalNodes});
             }
             catch (Exception ex) {
                 return StatusCode(500, ex.Message);
