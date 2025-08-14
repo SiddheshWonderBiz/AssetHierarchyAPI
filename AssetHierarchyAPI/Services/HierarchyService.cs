@@ -15,16 +15,20 @@ namespace AssetHierarchyAPI.Services
             _logger = logger;
         }
 
-        // Loads the hierarchy tree from storage
+        // loads the hierarchy tree from storage
         public AssetNode LoadHierarchy() => _storage.LoadHierarchy();
 
-        // Saves the hierarchy tree to storage
+        // saves the hierarchy tree to storage
         public void SaveHierarchy(AssetNode root) => _storage.SaveHierarchy(root);
 
         // Adds a new node 
         public void AddNode(int parentId, AssetNode newNode)
         {
             var root = _storage.LoadHierarchy();
+
+            int maxid = FindMaxId(root);
+            newNode.Id = maxid + 1;
+            newNode.Children = newNode.Children ?? new List<AssetNode>();
 
             //dupliaction avoidance check
             if (NodeExists(root, newNode.Id))
@@ -77,9 +81,8 @@ namespace AssetHierarchyAPI.Services
             // Special case: If removing the root node, clear the entire hierarchy
             if (root.Id == nodeId)
             {
-                _storage.SaveHierarchy(null);
-                _logger.LogInfo($"Root node {nodeId} removed.");
-                return;
+                _logger.LogError("You cant remove root node");
+                throw new InvalidOperationException("You cant remove root node ");
             }
 
             // Remove node recursively from children
@@ -169,6 +172,31 @@ namespace AssetHierarchyAPI.Services
                 count += CountNodes(child); 
             }
             return count;
+        }
+        //to add new hierarchy 
+        public void AddHierarchy(AssetNode node )
+        {
+            var tree = _storage.LoadHierarchy();
+            if(tree.Children == null)
+            {
+                tree.Children = new List<AssetNode>();
+            }
+
+            int maxid = FindMaxId(tree);
+            node.Id = maxid + 1;
+
+            if(node.Children == null)
+            {
+                node.Children = new List<AssetNode>();
+            }
+
+            if (NodeExists(tree, node.Id))
+            {
+                _logger.LogError($"Node with ID {node.Id} already exists.");
+                throw new InvalidOperationException($"A node with ID {node.Id} already exists.");
+            }
+            tree.Children.Add(node);
+            _storage.SaveHierarchy(tree);
         }
 
        // id auto genration 

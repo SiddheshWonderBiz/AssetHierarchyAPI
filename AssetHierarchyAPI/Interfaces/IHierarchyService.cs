@@ -12,6 +12,7 @@ namespace AssetHierarchyAPI.Interfaces
         void AssignIds(AssetNode root, ref int currentId);
 
         int CountNodes(AssetNode node);
+        void AddHierarchy(AssetNode node);
         void ReplaceTree(AssetNode node);
     }
 }

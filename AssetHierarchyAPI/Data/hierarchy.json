@@ -4,27 +4,98 @@
   "Children": [
     {
       "Id": 2,
-      "Name": "Machine 1",
+      "Name": "Drilling Operations",
       "Children": [
         {
           "Id": 3,
-          "Name": "Part A",
-          "Children": []
+          "Name": "Rig 1 - Offshore Platform A",
+          "Children": [
+            {
+              "Id": 4,
+              "Name": "Drill Crew A",
+              "Children": [
+                {
+                  "Id": 5,
+                  "Name": "Shift Supervisor - John Smith",
+                  "Children": []
+                },
+                {
+                  "Id": 6,
+                  "Name": "Driller - Sarah Lee",
+                  "Children": []
+                }
+              ]
+            },
+            {
+              "Id": 7,
+              "Name": "Maintenance Unit",
+              "Children": [
+                {
+                  "Id": 8,
+                  "Name": "Mechanical Engineer - David Brown",
+                  "Children": []
+                },
+                {
+                  "Id": 9,
+                  "Name": "Electrical Engineer - Emily Clark",
+                  "Children": []
+                }
+              ]
+            }
+          ]
         },
         {
-          "Id": 4,
-          "Name": "Part B",
+          "Id": 10,
+          "Name": "Rig 2 - Onshore Site B",
+          "Children": [
+            {
+              "Id": 11,
+              "Name": "Drill Crew B",
+              "Children": []
+            },
+            {
+              "Id": 12,
+              "Name": "Safety \u0026 Compliance",
+              "Children": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Id": 13,
+      "Name": "Digging Operations",
+      "Children": [
+        {
+          "Id": 14,
+          "Name": "Excavator Unit 1",
+          "Children": [
+            {
+              "Id": 15,
+              "Name": "Operator - Michael Green",
+              "Children": []
+            }
+          ]
+        },
+        {
+          "Id": 16,
+          "Name": "Excavator Unit 2",
           "Children": []
         }
       ]
     },
     {
-      "Id": 5,
-      "Name": "Machine 2",
+      "Id": 17,
+      "Name": "Logistics \u0026 Material Handling",
       "Children": [
         {
-          "Id": 6,
-          "Name": "Part C",
+          "Id": 18,
+          "Name": "Supply Chain Team",
+          "Children": []
+        },
+        {
+          "Id": 19,
+          "Name": "Storage Facility",
           "Children": []
         }
       ]

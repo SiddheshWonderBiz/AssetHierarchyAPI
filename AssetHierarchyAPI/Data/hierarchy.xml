@@ -1,28 +1,193 @@
 <?xml version="1.0" encoding="utf-8"?>
 <AssetNode xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
   <Id>1</Id>
-  <Name>Root</Name>
+  <Name>Node_1</Name>
   <Children>
     <AssetNode>
       <Id>2</Id>
-      <Name>Machine 1</Name>
+      <Name>Node_1</Name>
       <Children>
         <AssetNode>
           <Id>3</Id>
-          <Name>Sensor A</Name>
-          <Children />
+          <Name>Node_1</Name>
+          <Children>
+            <AssetNode>
+              <Id>4</Id>
+              <Name>Node_1</Name>
+              <Children />
+            </AssetNode>
+            <AssetNode>
+              <Id>5</Id>
+              <Name>Node_1</Name>
+              <Children />
+            </AssetNode>
+            <AssetNode>
+              <Id>6</Id>
+              <Name>Node_1</Name>
+              <Children />
+            </AssetNode>
+          </Children>
         </AssetNode>
         <AssetNode>
-          <Id>4</Id>
-          <Name>Sensor B</Name>
-          <Children />
+          <Id>7</Id>
+          <Name>Node_1</Name>
+          <Children>
+            <AssetNode>
+              <Id>8</Id>
+              <Name>Node_1</Name>
+              <Children />
+            </AssetNode>
+            <AssetNode>
+              <Id>9</Id>
+              <Name>Node_1</Name>
+              <Children />
+            </AssetNode>
+            <AssetNode>
+              <Id>10</Id>
+              <Name>Node_1</Name>
+              <Children />
+            </AssetNode>
+          </Children>
+        </AssetNode>
+        <AssetNode>
+          <Id>11</Id>
+          <Name>Node_1</Name>
+          <Children>
+            <AssetNode>
+              <Id>12</Id>
+              <Name>Node_1</Name>
+              <Children />
+            </AssetNode>
+            <AssetNode>
+              <Id>13</Id>
+              <Name>Node_1</Name>
+              <Children />
+            </AssetNode>
+            <AssetNode>
+              <Id>14</Id>
+              <Name>Node_1</Name>
+              <Children />
+            </AssetNode>
+          </Children>
         </AssetNode>
       </Children>
     </AssetNode>
     <AssetNode>
-      <Id>5</Id>
-      <Name>Machine 2</Name>
-      <Children />
+      <Id>15</Id>
+      <Name>Node_1</Name>
+      <Children>
+        <AssetNode>
+          <Id>16</Id>
+          <Name>Node_1</Name>
+          <Children>
+            <AssetNode>
+              <Id>17</Id>
+              <Name>Node_1</Name>
+              <Children />
+            </AssetNode>
+            <AssetNode>
+              <Id>18</Id>
+              <Name>Node_1</Name>
+              <Children />
+            </AssetNode>
+            <AssetNode>
+              <Id>19</Id>
+              <Name>Node_1</Name>
+              <Children />
+            </AssetNode>
+          </Children>
+        </AssetNode>
+        <AssetNode>
+          <Id>20</Id>
+          <Name>Node_1</Name>
+          <Children>
+            <AssetNode>
+              <Id>21</Id>
+              <Name>Node_1</Name>
+              <Children />
+            </AssetNode>
+            <AssetNode>
+              <Id>22</Id>
+              <Name>Node_1</Name>
+              <Children />
+            </AssetNode>
+            <AssetNode>
+              <Id>23</Id>
+              <Name>Node_1</Name>
+              <Children />
+            </AssetNode>
+          </Children>
+        </AssetNode>
+        <AssetNode>
+          <Id>24</Id>
+          <Name>Node_1</Name>
+          <Children>
+            <AssetNode>
+              <Id>25</Id>
+              <Name>Node_1</Name>
+              <Children />
+            </AssetNode>
+            <AssetNode>
+              <Id>26</Id>
+              <Name>Node_1</Name>
+              <Children />
+            </AssetNode>
+            <AssetNode>
+              <Id>27</Id>
+              <Name>Node_1</Name>
+              <Children />
+            </AssetNode>
+          </Children>
+        </AssetNode>
+      </Children>
+    </AssetNode>
+    <AssetNode>
+      <Id>28</Id>
+      <Name>Node_1</Name>
+      <Children>
+        <AssetNode>
+          <Id>29</Id>
+          <Name>Node_1</Name>
+          <Children>
+            <AssetNode>
+              <Id>30</Id>
+              <Name>Node_1</Name>
+              <Children />
+            </AssetNode>
+            <AssetNode>
+              <Id>31</Id>
+              <Name>Node_1</Name>
+              <Children />
+            </AssetNode>
+            <AssetNode>
+              <Id>32</Id>
+              <Name>Node_1</Name>
+              <Children />
+            </AssetNode>
+          </Children>
+        </AssetNode>
+        <AssetNode>
+          <Id>33</Id>
+          <Name>Node_1</Name>
+          <Children>
+            <AssetNode>
+              <Id>34</Id>
+              <Name>Node_1</Name>
+              <Children />
+            </AssetNode>
+            <AssetNode>
+              <Id>35</Id>
+              <Name>Node_1</Name>
+              <Children />
+            </AssetNode>
+            <AssetNode>
+              <Id>36</Id>
+              <Name>Node_1</Name>
+              <Children />
+            </AssetNode>
+          </Children>
+        </AssetNode>
+      </Children>
     </AssetNode>
   </Children>
 </AssetNode>

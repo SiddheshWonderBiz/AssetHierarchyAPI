@@ -32,11 +32,32 @@ namespace AssetHierarchyAPI.Controllers
                 int totalNodes = _service.CountNodes(tree);
                 return Ok(new {tree , totalNodes});
             }
-            catch (Exception ex) {
-                return StatusCode(500, ex.Message);
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = "Unexpected error occured " });
             }
         }
-
+        [HttpPost("addhierarchy")]
+        public IActionResult AddHierarchy([FromBody] AssetNode newHierarchy)
+        {
+            try
+            {
+                _service.AddHierarchy(newHierarchy);
+                return Ok(new { message = "Hierarchy added successfully" });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = "Unexpected error occured " });
+            }
+        }
         
         [HttpPost("add")]
         [ProducesResponseType(200)]
@@ -73,6 +94,10 @@ namespace AssetHierarchyAPI.Controllers
             catch (InvalidOperationException ex)
             {
                 return BadRequest(new { error = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = "Unexpected error occured " });
             }
         }
 
