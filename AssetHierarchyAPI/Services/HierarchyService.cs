@@ -120,10 +120,11 @@ namespace AssetHierarchyAPI.Services
 
             AssignMissingIds(newRoot, ref maxId); // Assign IDs to nodes that don't have one
 
-            int totalCount = CountNodes(newRoot); // Count total number of nodes
+            int totalCount = CountNodes(newRoot) - 1   ; // Count total number of nodes
+            Console.WriteLine(totalCount);
 
             _storage.SaveHierarchy(newRoot);
-            _logger.LogInfo($"Hierarchy replaced successfully. Total nodes: {totalCount}");
+            _logger.LogInfo($"Hierarchy replaced successfully. Total nodes: {totalCount  }");
         }
 
         // Ensures no null Children lists 

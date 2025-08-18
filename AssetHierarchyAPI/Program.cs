@@ -1,13 +1,20 @@
 using AssetHierarchyAPI.Extensions;
 using AssetHierarchyAPI.Interfaces;
+using AssetHierarchyAPI.Middleware;
 using AssetHierarchyAPI.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
+using Serilog;
+using Serilog.Ui.Web;
 using System.Threading.RateLimiting;
-using AssetHierarchyAPI.Middleware;
 var builder = WebApplication.CreateBuilder(args);
 var storageType = builder.Configuration["StorageType"];
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console()
+    .WriteTo.File("Logs/log-.txt", rollingInterval: RollingInterval.Day)
+    .CreateLogger();
+builder.Host.UseSerilog();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend",
@@ -24,7 +31,8 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddStorageService(builder.Configuration);
 
-
+// No options needed for log file path here
+builder.Services.AddSerilogUi(optionsBuilder => { });
 
 var app = builder.Build();
 app.UseCors("AllowFrontend");
@@ -39,7 +47,7 @@ app.UseHttpsRedirection();
 
 app.UseMiddleware<ImportFormatValidationMiddleware>();
 app.UseAuthorization();
-
+app.UseSerilogUi();
 app.MapControllers();
 
 app.Run();
