@@ -55,7 +55,7 @@
             },
             {
               "Id": 12,
-              "Name": "Safety \u0026 Compliance",
+              "Name": "Safety & Compliance",
               "Children": []
             }
           ]
@@ -86,7 +86,7 @@
     },
     {
       "Id": 17,
-      "Name": "Logistics \u0026 Material Handling",
+      "Name": "Logistics & Material Handling",
       "Children": [
         {
           "Id": 18,

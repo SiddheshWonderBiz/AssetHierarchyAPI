@@ -1,6 +1,7 @@
 ﻿using AssetHierarchyAPI.Interfaces;
 using AssetHierarchyAPI.Models;
-using System.Text.Json;
+//using System.Text.Json;
+using Newtonsoft.Json;
 
 namespace AssetHierarchyAPI.Services
 {
@@ -14,12 +15,12 @@ namespace AssetHierarchyAPI.Services
             return new AssetNode { Id = 1 ,Name = "Root", Children = new List<AssetNode>() };
             }
             var json = File.ReadAllText(filePath);
-            return JsonSerializer.Deserialize<AssetNode>(json);
+            return JsonConvert.DeserializeObject<AssetNode>(json);
 
         }
         public void SaveHierarchy(AssetNode root)
         {
-            var json = JsonSerializer.Serialize(root, new JsonSerializerOptions { WriteIndented = true });
+            var json = JsonConvert.SerializeObject(root, Formatting.Indented);
             File.WriteAllText(filePath, json);
         }
 

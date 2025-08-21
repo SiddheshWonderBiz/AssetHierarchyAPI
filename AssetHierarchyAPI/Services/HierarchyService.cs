@@ -31,10 +31,10 @@ namespace AssetHierarchyAPI.Services
             newNode.Children = newNode.Children ?? new List<AssetNode>();
 
             //dupliaction avoidance check
-            if (NodeExists(root, newNode.Id))
+            if (NodeExists(root, newNode.Id , newNode.Name))
             {
-                _logger.LogError($"Node with ID {newNode.Id} already exists.");
-                throw new InvalidOperationException($"A node with ID {newNode.Id} already exists.");
+                _logger.LogError($"Node with ID  {newNode.Name} already exists.");
+                throw new InvalidOperationException($"A node with ID  {newNode.Name} already exists.");
             }
 
             // Find the parent node where the new node will be added
@@ -48,12 +48,12 @@ namespace AssetHierarchyAPI.Services
         }
 
         // Checks if a node with a given ID already exists in the hierarchy
-        public bool NodeExists(AssetNode curr, int id)
+        public bool NodeExists(AssetNode curr, int id , string name)
         {
-            if (curr.Id == id) return true;
+            if (curr.Id == id  || curr.Name == name) return true;
             foreach (var child in curr.Children)
             {
-                if (NodeExists(child, id)) return true;
+                if (NodeExists(child, id , name)) return true;
             }
             return false;
         }
@@ -110,15 +110,59 @@ namespace AssetHierarchyAPI.Services
             }
             return false;
         }
+        // Validates the hierarchy tree structure
+
+        private void Validate(AssetNode node)
+        {
+            if(string.IsNullOrWhiteSpace(node.Name))
+            {
+                _logger.LogError("Node name cannot be null or empty.");
+                throw new ArgumentException("Node name cannot be null or empty.");
+            }
+            if(node.Children == null)
+            {
+                _logger.LogError("Node children cannot be null.");
+                throw new ArgumentException("Node children cannot be null.");
+            }
+            foreach(var child in node.Children)
+            {
+                Validate(child); // Recursively validate children
+            }
+        }
+        // Checks for duplicate IDs or Names in the hierarchy
+        private void ValidateUniqueness(AssetNode root)
+        {
+            var nameSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            void Traverse(AssetNode node)
+            {
+
+                if (!nameSet.Add(node.Name))
+                {
+                    _logger.LogError($"Duplicate Name found: {node.Name}");
+                    throw new InvalidOperationException($"Duplicate Name found: {node.Name}");
+                }
+
+                foreach (var child in node.Children)
+                {
+                    Traverse(child);
+                }
+            }
+
+            Traverse(root);
+        }
+
 
         // Completely replaces the existing tree with a new one
         public void ReplaceTree(AssetNode newRoot)
         {
+            Validate(newRoot); // Validate the new root node
             NormalizeChildren(newRoot); 
 
             int maxId = FindMaxId(newRoot);
 
             AssignMissingIds(newRoot, ref maxId); // Assign IDs to nodes that don't have one
+            ValidateUniqueness(newRoot); // Ensure no duplicate names
 
             int totalCount = CountNodes(newRoot) - 1   ; // Count total number of nodes
             Console.WriteLine(totalCount);
@@ -191,10 +235,10 @@ namespace AssetHierarchyAPI.Services
                 node.Children = new List<AssetNode>();
             }
 
-            if (NodeExists(tree, node.Id))
+            if (NodeExists(tree, node.Id, node.Name))
             {
-                _logger.LogError($"Node with ID {node.Id} already exists.");
-                throw new InvalidOperationException($"A node with ID {node.Id} already exists.");
+                _logger.LogError($"A node with  {node.Name} already exists.");
+                throw new InvalidOperationException($"A node with {node.Name} already exists.");
             }
             tree.Children.Add(node);
             _storage.SaveHierarchy(tree);
