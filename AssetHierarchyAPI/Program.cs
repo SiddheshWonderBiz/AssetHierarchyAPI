@@ -1,8 +1,10 @@
+using AssetHierarchyAPI.Data;
 using AssetHierarchyAPI.Extensions;
 using AssetHierarchyAPI.Interfaces;
 using AssetHierarchyAPI.Middleware;
 using AssetHierarchyAPI.Services;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
 using Serilog;
@@ -15,6 +17,7 @@ Log.Logger = new LoggerConfiguration()
     .WriteTo.File("Logs/log-.txt", rollingInterval: RollingInterval.Day)
     .CreateLogger();
 builder.Host.UseSerilog();
+builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("Connect")));
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend",
@@ -25,7 +28,6 @@ builder.Services.AddCors(options =>
                   .AllowAnyMethod();
         });
 });
-
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();         
 builder.Services.AddSwaggerGen();
