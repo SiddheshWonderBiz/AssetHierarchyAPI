@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AssetHierarchyAPI.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250825104003_intialmigration")]
-    partial class intialmigration
+    [Migration("20250826083626_newmigration")]
+    partial class newmigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

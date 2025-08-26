@@ -5,7 +5,7 @@
 namespace AssetHierarchyAPI.Migrations
 {
     /// <inheritdoc />
-    public partial class intialmigration : Migration
+    public partial class newmigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

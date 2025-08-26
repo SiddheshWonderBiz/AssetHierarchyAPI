@@ -1,27 +1,39 @@
 {
   "Id": 1,
   "Name": "Root",
+  "ParentId": null,
+  "Parent": null,
   "Children": [
     {
       "Id": 2,
       "Name": "Drilling Operations",
+      "ParentId": null,
+      "Parent": null,
       "Children": [
         {
           "Id": 3,
           "Name": "Rig 1 - Offshore Platform A",
+          "ParentId": null,
+          "Parent": null,
           "Children": [
             {
               "Id": 4,
               "Name": "Drill Crew A",
+              "ParentId": null,
+              "Parent": null,
               "Children": [
                 {
                   "Id": 5,
                   "Name": "Shift Supervisor - John Smith",
+                  "ParentId": null,
+                  "Parent": null,
                   "Children": []
                 },
                 {
                   "Id": 6,
                   "Name": "Driller - Sarah Lee",
+                  "ParentId": null,
+                  "Parent": null,
                   "Children": []
                 }
               ]
@@ -29,15 +41,21 @@
             {
               "Id": 7,
               "Name": "Maintenance Unit",
+              "ParentId": null,
+              "Parent": null,
               "Children": [
                 {
                   "Id": 8,
                   "Name": "Mechanical Engineer - David Brown",
+                  "ParentId": null,
+                  "Parent": null,
                   "Children": []
                 },
                 {
                   "Id": 9,
                   "Name": "Electrical Engineer - Emily Clark",
+                  "ParentId": null,
+                  "Parent": null,
                   "Children": []
                 }
               ]
@@ -47,15 +65,21 @@
         {
           "Id": 10,
           "Name": "Rig 2 - Onshore Site B",
+          "ParentId": null,
+          "Parent": null,
           "Children": [
             {
               "Id": 11,
               "Name": "Drill Crew B",
+              "ParentId": null,
+              "Parent": null,
               "Children": []
             },
             {
               "Id": 12,
               "Name": "Safety & Compliance",
+              "ParentId": null,
+              "Parent": null,
               "Children": []
             }
           ]
@@ -65,14 +89,20 @@
     {
       "Id": 13,
       "Name": "Digging Operations",
+      "ParentId": null,
+      "Parent": null,
       "Children": [
         {
           "Id": 14,
           "Name": "Excavator Unit 1",
+          "ParentId": null,
+          "Parent": null,
           "Children": [
             {
               "Id": 15,
               "Name": "Operator - Michael Green",
+              "ParentId": null,
+              "Parent": null,
               "Children": []
             }
           ]
@@ -80,6 +110,8 @@
         {
           "Id": 16,
           "Name": "Excavator Unit 2",
+          "ParentId": null,
+          "Parent": null,
           "Children": []
         }
       ]
@@ -87,15 +119,21 @@
     {
       "Id": 17,
       "Name": "Logistics & Material Handling",
+      "ParentId": null,
+      "Parent": null,
       "Children": [
         {
           "Id": 18,
           "Name": "Supply Chain Team",
+          "ParentId": null,
+          "Parent": null,
           "Children": []
         },
         {
           "Id": 19,
           "Name": "Storage Facility",
+          "ParentId": null,
+          "Parent": null,
           "Children": []
         }
       ]
