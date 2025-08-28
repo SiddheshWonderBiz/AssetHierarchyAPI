@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Globalization;
 using System.Text.Json;
 using System.Xml.Serialization;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace AssetHierarchyAPI.Controllers
 {
@@ -104,6 +105,29 @@ namespace AssetHierarchyAPI.Controllers
                 return StatusCode(500, new { error = "Unexpected error occurred: " + ex.Message });
             }
         }
+
+        [HttpPut("update/{id}")]
+        public IActionResult UpdateNode(int id, [FromBody] string newName)
+        {
+            try
+            {
+                var update = _service.UpdateNodeName(id, newName);
+                if (!update)
+                    return NotFound($"Node with id {id} not found");
+
+                return Ok($"Node {id} updated to '{newName}' successfully.");
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(ex.Message); // duplicate name
+            }
+        }
+
+
 
         [HttpDelete("remove/{id}")]
         public IActionResult RemoveNode(int id)

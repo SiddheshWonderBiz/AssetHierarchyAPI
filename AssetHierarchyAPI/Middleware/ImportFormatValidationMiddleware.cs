@@ -16,7 +16,7 @@ public class ImportFormatValidationMiddleware
     {
         _next = next;
         _logger = logger;
-        _allowedFormat = configuration["StorageType"]?.Trim()?.ToLowerInvariant() ?? "json";
+        _allowedFormat = configuration["FileType"]?.Trim()?.ToLowerInvariant() ?? "json";
     }
 
     public async Task InvokeAsync(HttpContext context)

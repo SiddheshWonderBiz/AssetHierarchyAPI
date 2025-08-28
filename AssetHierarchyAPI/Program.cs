@@ -64,7 +64,7 @@ if (app.Environment.IsDevelopment())
 
 //   Middleware
 app.UseAuthorization();
-//app.UseMiddleware<ImportFormatValidationMiddleware>();
+app.UseMiddleware<ImportFormatValidationMiddleware>();
 
 //   Serilog UI dashboard
 app.UseSerilogUi();

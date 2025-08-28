@@ -46,6 +46,28 @@ namespace AssetHierarchyAPI.Services
                 _logger.LogInfo($"Node {newNode.Id}:{newNode.Name} added under parent {parentId}.");
             }
         }
+        //update Node
+        public bool UpdateNodeName(int id, string newName)
+        {
+            var root = _storage.LoadHierarchy();
+            var node = FindNode(root, id);
+            if (node == null)
+            {
+                _logger.LogError($"Node with ID {id} not found.");
+                return false; 
+            }
+            if(NodeExists(root , -1 , newName))
+            {
+                _logger.LogError($"Node with name {newName} already exists.");
+                throw new InvalidOperationException($"A node with name {newName} already exists.");
+            }
+            string oldName = node.Name;
+            oldName = newName;
+            _storage.SaveHierarchy(root);
+            _logger.LogInfo($"Node {id} renamed from '{oldName}' to '{newName}'.");
+
+            return true;
+        }
 
         // Checks if a node with a given ID already exists in the hierarchy
         public bool NodeExists(AssetNode curr, int id , string name)

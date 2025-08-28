@@ -15,14 +15,32 @@ namespace AssetHierarchyAPI.Services
 
             using var stream = new FileStream(filepath, FileMode.Open);
             var serializer = new XmlSerializer(typeof(AssetNode));
-            return (AssetNode)serializer.Deserialize(stream);
+            var root = (AssetNode)serializer.Deserialize(stream);
+
+            // Re-assign parentIds after loading
+            AssignParentIds(root, null);
+
+            return root;
         }
 
         public void SaveHierarchy(AssetNode root)
         {
+            // Ensure parentIds are set before saving
+            AssignParentIds(root, null);
+
             using var stream = new FileStream(filepath, FileMode.Create);
             var serializer = new XmlSerializer(typeof(AssetNode));
             serializer.Serialize(stream, root);
+        }
+
+        private void AssignParentIds(AssetNode node, int? parentId)
+        {
+            node.ParentId = parentId;
+
+            foreach (var child in node.Children)
+            {
+                AssignParentIds(child, node.Id);
+            }
         }
     }
 }
