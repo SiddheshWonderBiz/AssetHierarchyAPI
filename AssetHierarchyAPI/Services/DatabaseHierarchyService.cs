@@ -121,6 +121,11 @@ namespace AssetHierarchyAPI.Services
             try
             {
                 var allNodes = _context.AssetNodes.ToList();
+                if(nodeId == 1 )
+                {
+                    throw new InvalidOperationException("Root Node Can't be deleted ");
+                }
+
                 var nodeToRemove = allNodes.FirstOrDefault(n => n.Id == nodeId);
 
                 if (nodeToRemove == null)
@@ -159,7 +164,7 @@ namespace AssetHierarchyAPI.Services
 
             return result;
         }
-
+        
         // Assign IDs (EF will do)
         public void AssignIds(AssetNode root, ref int currentId)
         {
