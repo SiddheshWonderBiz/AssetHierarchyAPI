@@ -1,5 +1,6 @@
 ﻿using AssetHierarchyAPI.Interfaces;
 using AssetHierarchyAPI.Models;
+using System.Text.Json;
 
 namespace AssetHierarchyAPI.Services
 {
@@ -46,6 +47,56 @@ namespace AssetHierarchyAPI.Services
                 _logger.LogInfo($"Node {newNode.Id}:{newNode.Name} added under parent {parentId}.");
             }
         }
+
+
+        //Validate Node
+        public void ValidateNode(JsonElement element)
+        {
+            // Find "name" property (case-insensitive)
+            var nameProp = element.EnumerateObject()
+                                  .FirstOrDefault(p => p.Name.Equals("name", StringComparison.OrdinalIgnoreCase));
+
+            if (nameProp.Value.ValueKind == JsonValueKind.Undefined || nameProp.Value.ValueKind != JsonValueKind.String)
+            {
+                throw new ArgumentException("Each node must have a string 'name'.");
+            }
+
+            // If "children" exists, it must be an array
+            var childrenProp = element.EnumerateObject()
+                                      .FirstOrDefault(p => p.Name.Equals("children", StringComparison.OrdinalIgnoreCase));
+
+            if (childrenProp.Value.ValueKind != JsonValueKind.Undefined)
+            {
+                if (childrenProp.Value.ValueKind != JsonValueKind.Array)
+                {
+                    throw new ArgumentException("'children' must be an array.");
+                }
+
+                foreach (var child in childrenProp.Value.EnumerateArray())
+                {
+                    ValidateNode(child); // recurse
+                }
+            }
+
+            // Fail on unknown properties
+            foreach (var prop in element.EnumerateObject())
+            {
+                if (!prop.Name.Equals("id", StringComparison.OrdinalIgnoreCase) &&
+                    !prop.Name.Equals("name", StringComparison.OrdinalIgnoreCase) &&
+                    !prop.Name.Equals("children", StringComparison.OrdinalIgnoreCase) &&
+                    !prop.Name.Equals("parentId", StringComparison.OrdinalIgnoreCase) &&
+                                        !prop.Name.Equals("parent", StringComparison.OrdinalIgnoreCase)
+
+
+                    )
+                {
+                    throw new ArgumentException(
+                        $"Invalid property '{prop.Name}'. Only 'id', 'name', and 'children' are allowed."
+                    );
+                }
+            }
+        }
+
         //update Node
         public bool UpdateNodeName(int id, string newName)
         {

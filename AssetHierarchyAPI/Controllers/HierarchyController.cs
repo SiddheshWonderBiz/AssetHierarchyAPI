@@ -159,7 +159,6 @@ namespace AssetHierarchyAPI.Controllers
             {
                 using var sr = new StreamReader(file.OpenReadStream());
                 var data = await sr.ReadToEndAsync();
-
                 if (string.IsNullOrWhiteSpace(data))
                 {
                     return BadRequest(new { error = "File content is empty" });
@@ -176,6 +175,10 @@ namespace AssetHierarchyAPI.Controllers
                 }
                 else
                 {
+                    // ✅ Strict JSON validation BEFORE deserialization
+                    using var jsonDoc = JsonDocument.Parse(data);
+                    _service.ValidateNode(jsonDoc.RootElement);
+
                     var options = new JsonSerializerOptions
                     {
                         PropertyNameCaseInsensitive = true,
@@ -191,8 +194,7 @@ namespace AssetHierarchyAPI.Controllers
                 // Initialize children collection if null
                 InitializeChildren(newTree);
 
-                // For database storage, we don't need to manually assign IDs
-                // EF will handle ID generation
+                // For database storage, EF handles IDs
                 var dbStorageType = _configuration["StorageType"];
                 if (!dbStorageType.Equals("DB", StringComparison.OrdinalIgnoreCase))
                 {
@@ -201,7 +203,6 @@ namespace AssetHierarchyAPI.Controllers
                 }
 
                 _service.ReplaceTree(newTree);
-
                 return Ok(new { message = "Hierarchy updated successfully" });
             }
             catch (JsonException ex)

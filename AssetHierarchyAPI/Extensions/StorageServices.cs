@@ -16,14 +16,17 @@ namespace AssetHierarchyAPI.Extensions
             switch (storageType) {
                 case "XML":
                     services.AddScoped<IHierarchyStorage, XmlHierarchyStorage>();
+                    services.AddScoped<ISignalServices , SignalService>();
                     services.AddScoped<IHierarchyService,HierarchyService>();
                     break;
                 case "DB":
                     //services.AddScoped<IHierarchyStorage, DatabaseHierarchyStorage>();
+                    services.AddScoped<ISignalServices, SignalService>();
                     services.AddScoped<IHierarchyService, DatabaseHierarchyService>();
                     break;
                 default:
                     services.AddScoped<IHierarchyStorage, JsonHierarchyStorage>();
+                    services.AddScoped<ISignalServices, SignalService>();
                     services.AddScoped<IHierarchyService, HierarchyService>();
                     break;
             }

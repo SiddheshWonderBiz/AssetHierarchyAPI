@@ -20,5 +20,8 @@ namespace AssetHierarchyAPI.Models
         public AssetNode? Parent { get; set; }
 
         public List<AssetNode> Children { get; set; } = new List<AssetNode>();
+
+        [JsonIgnore]
+        public List<Signals> Signals { get; set; } = new List<Signals>();
     }
 }

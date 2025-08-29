@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AssetHierarchyAPI.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250826083626_newmigration")]
-    partial class newmigration
+    [Migration("20250829103627_AddSignals")]
+    partial class AddSignals
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -44,11 +44,37 @@ namespace AssetHierarchyAPI.Migrations
 
                     b.HasIndex("ParentId");
 
-                    b.HasIndex("Name", "ParentId")
-                        .IsUnique()
-                        .HasFilter("[ParentId] IS NOT NULL");
-
                     b.ToTable("AssetNodes");
+                });
+
+            modelBuilder.Entity("AssetHierarchyAPI.Models.Signals", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AssetId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("ValueType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AssetId");
+
+                    b.ToTable("Signals");
                 });
 
             modelBuilder.Entity("AssetHierarchyAPI.Models.AssetNode", b =>
@@ -61,9 +87,22 @@ namespace AssetHierarchyAPI.Migrations
                     b.Navigation("Parent");
                 });
 
+            modelBuilder.Entity("AssetHierarchyAPI.Models.Signals", b =>
+                {
+                    b.HasOne("AssetHierarchyAPI.Models.AssetNode", "Asset")
+                        .WithMany("Signals")
+                        .HasForeignKey("AssetId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Asset");
+                });
+
             modelBuilder.Entity("AssetHierarchyAPI.Models.AssetNode", b =>
                 {
                     b.Navigation("Children");
+
+                    b.Navigation("Signals");
                 });
 #pragma warning restore 612, 618
         }

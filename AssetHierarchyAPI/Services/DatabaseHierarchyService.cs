@@ -2,6 +2,8 @@
 using AssetHierarchyAPI.Interfaces;
 using AssetHierarchyAPI.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
+using System.Xml.Linq;
 
 namespace AssetHierarchyAPI.Services
 {
@@ -45,6 +47,54 @@ namespace AssetHierarchyAPI.Services
             catch (Exception ex)
             {
                 throw new ApplicationException("Failed to load hierarchy. Please try again later.", ex);
+            }
+        }
+        //Validation
+        public void ValidateNode(JsonElement element)
+        {
+            // Find "name" property (case-insensitive)
+            var nameProp = element.EnumerateObject()
+                                  .FirstOrDefault(p => p.Name.Equals("name", StringComparison.OrdinalIgnoreCase));
+
+            if (nameProp.Value.ValueKind == JsonValueKind.Undefined || nameProp.Value.ValueKind != JsonValueKind.String)
+            {
+                throw new ArgumentException("Each node must have a string 'name'.");
+            }
+
+            // If "children" exists, it must be an array
+            var childrenProp = element.EnumerateObject()
+                                      .FirstOrDefault(p => p.Name.Equals("children", StringComparison.OrdinalIgnoreCase));
+
+            if (childrenProp.Value.ValueKind != JsonValueKind.Undefined)
+            {
+                if (childrenProp.Value.ValueKind != JsonValueKind.Array)
+                {
+                    throw new ArgumentException("'children' must be an array.");
+                }
+
+                foreach (var child in childrenProp.Value.EnumerateArray())
+                {
+                    ValidateNode(child); // recurse
+                }
+            }
+
+            // Fail on unknown properties
+            foreach (var prop in element.EnumerateObject())
+            {
+                if (!prop.Name.Equals("id", StringComparison.OrdinalIgnoreCase) &&
+                    !prop.Name.Equals("name", StringComparison.OrdinalIgnoreCase) &&
+                    !prop.Name.Equals("children", StringComparison.OrdinalIgnoreCase) &&
+                    !prop.Name.Equals("parentId", StringComparison.OrdinalIgnoreCase) &&
+                    !prop.Name.Equals("parent", StringComparison.OrdinalIgnoreCase)&&
+                    !prop.Name.Equals("Signals", StringComparison.OrdinalIgnoreCase)
+
+
+                    )
+                {
+                    throw new ArgumentException(
+                        $"Invalid property '{prop.Name}'. Only 'id', 'name', and 'children' are allowed."
+                    );
+                }
             }
         }
 
@@ -109,6 +159,12 @@ namespace AssetHierarchyAPI.Services
             if (node == null)
             {
                 return false;
+            }
+            var nodeExists = _context.AssetNodes.Any(n => n.Name == newName && n.Id != id);
+            if (nodeExists)
+            {
+                _logger.LogError($"Node with name {newName} already exists.");
+                throw new InvalidOperationException($"A node with name {newName} already exists.");
             }
             node.Name = newName;
             _context.SaveChanges();
@@ -244,17 +300,11 @@ namespace AssetHierarchyAPI.Services
             using var transaction = _context.Database.BeginTransaction();
             try
             {
-                try
-                {
-                    // Try truncate table (faster, resets IDs)
-                    _context.Database.ExecuteSqlRaw("TRUNCATE TABLE AssetNodes");
-                }
-                catch
-                {
+               
                     // Fallback: delete all one by one  + reseed identity
                     _context.Database.ExecuteSqlRaw("DELETE FROM AssetNodes");
                     _context.Database.ExecuteSqlRaw("DBCC CHECKIDENT ('AssetNodes', RESEED, 0)");
-                }
+               
 
                 // Insert new root + its children
                 if (newRoot != null)

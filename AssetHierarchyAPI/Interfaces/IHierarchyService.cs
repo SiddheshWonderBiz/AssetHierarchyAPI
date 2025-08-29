@@ -1,5 +1,6 @@
 ﻿// Interfaces/IHierarchyService.cs
 using AssetHierarchyAPI.Models;
+using System.Text.Json;
 
 namespace AssetHierarchyAPI.Interfaces
 {
@@ -14,5 +15,7 @@ namespace AssetHierarchyAPI.Interfaces
         int CountNodes(AssetNode node);
         void AddHierarchy(AssetNode node);
         void ReplaceTree(AssetNode node);
+
+        void ValidateNode(JsonElement element);
     }
 }
