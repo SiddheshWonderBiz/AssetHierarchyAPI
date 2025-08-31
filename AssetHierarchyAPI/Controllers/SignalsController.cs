@@ -5,6 +5,8 @@ using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace AssetHierarchyAPI.Controllers
 {
+    [ApiController]
+    [Route("api/[controller]")]
     public class SignalsController : Controller
     {
         private readonly ISignalServices _signals;
@@ -36,7 +38,11 @@ namespace AssetHierarchyAPI.Controllers
             {
 
                 var created = _signals.AddSignal(assetId, data);
-                return Ok("Created Signal Susscfully ");
+                return Ok(new
+                {
+                    message = "Created Signal Successfully",
+                    signal = created
+                });
             }
             catch (Exception ex)
             {
@@ -44,6 +50,7 @@ namespace AssetHierarchyAPI.Controllers
             }
             
         }
+
         [HttpPut("asset/{assetId}/{id}")]
 
         public IActionResult UpdateSignal(int id , [FromBody] GlobalSignalDTO data)
@@ -58,6 +65,7 @@ namespace AssetHierarchyAPI.Controllers
                 return BadRequest(new { error = ex.Message });
             }
         }
+
         [HttpDelete("asset/{assetId}/{id}")]
 
         public IActionResult DeleteSignal(int id)
