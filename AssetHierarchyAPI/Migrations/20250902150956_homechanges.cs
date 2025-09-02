@@ -5,7 +5,7 @@
 namespace AssetHierarchyAPI.Migrations
 {
     /// <inheritdoc />
-    public partial class passwordchanges : Migration
+    public partial class homechanges : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

@@ -276,7 +276,7 @@ namespace AssetHierarchyAPI.Controllers
                         await stream.CopyToAsync(memory);
                     }
                     memory.Position = 0;
-
+                    
                     return File(memory, "application/json", "Hierarchy.json");
                 }
             }

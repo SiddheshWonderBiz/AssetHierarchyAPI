@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AssetHierarchyAPI.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250902121246_passwordchanges")]
-    partial class passwordchanges
+    [Migration("20250902150956_homechanges")]
+    partial class homechanges
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
