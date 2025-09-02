@@ -1,5 +1,7 @@
 ﻿using AssetHierarchyAPI.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace AssetHierarchyAPI.Data
 {
@@ -10,6 +12,7 @@ namespace AssetHierarchyAPI.Data
         public DbSet<AssetNode> AssetNodes { get; set; }
         public DbSet<Signals> Signals { get; set; }
 
+        public DbSet<User> Users { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -24,8 +27,19 @@ namespace AssetHierarchyAPI.Data
                 .WithOne(s => s.Asset)
                 .HasForeignKey(s => s.AssetId)
                 .OnDelete(DeleteBehavior.Cascade);
-
-
+            modelBuilder.Entity<User>()
+                .HasIndex(u => u.Username)
+                .IsUnique();
+         
+            modelBuilder.Entity<User>().HasData(new User
+            {
+                Id = 1,
+                Username = "admin",
+                Password = Convert.ToBase64String(
+        SHA256.HashData(Encoding.UTF8.GetBytes("Admin@123"))
+    ),
+                Role = "Admin"
+            });
         }
     }
 }

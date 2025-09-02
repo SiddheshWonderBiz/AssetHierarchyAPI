@@ -5,6 +5,8 @@ using System.Globalization;
 using System.Text.Json;
 using System.Xml.Serialization;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+using Microsoft.AspNetCore.Authorization;
+
 
 namespace AssetHierarchyAPI.Controllers
 {
@@ -43,6 +45,7 @@ namespace AssetHierarchyAPI.Controllers
         }
 
         [HttpPost("addhierarchy")]
+        [Authorize(Roles = "Admin")]
         public IActionResult AddHierarchy([FromBody] AssetNode newHierarchy)
         {
             try
@@ -66,6 +69,7 @@ namespace AssetHierarchyAPI.Controllers
         }
 
         [HttpPost("add")]
+        [Authorize(Roles = "Admin")]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
         [ProducesResponseType(409)]
@@ -107,6 +111,7 @@ namespace AssetHierarchyAPI.Controllers
         }
 
         [HttpPut("update/{id}")]
+        [Authorize(Roles = "Admin")]
         public IActionResult UpdateNode(int id, [FromBody] string newName)
         {
             try
@@ -130,6 +135,7 @@ namespace AssetHierarchyAPI.Controllers
 
 
         [HttpDelete("remove/{id}")]
+        [Authorize(Roles = "Admin")]
         public IActionResult RemoveNode(int id)
         {
             try
@@ -148,6 +154,7 @@ namespace AssetHierarchyAPI.Controllers
         }
 
         [HttpPost("upload")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> UploadFile(IFormFile file)
         {
             if (file == null || file.Length == 0)
@@ -233,6 +240,7 @@ namespace AssetHierarchyAPI.Controllers
         }
 
         [HttpGet("download")]
+        [Authorize(Roles = "Admin,Viewer")]
         public async Task<IActionResult> DownloadFile()
         {
             var storageType = _configuration["StorageType"] ?? "JSON";

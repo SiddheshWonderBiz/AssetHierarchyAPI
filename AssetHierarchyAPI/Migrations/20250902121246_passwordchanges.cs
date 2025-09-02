@@ -5,7 +5,7 @@
 namespace AssetHierarchyAPI.Migrations
 {
     /// <inheritdoc />
-    public partial class AddSignals : Migration
+    public partial class passwordchanges : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -30,6 +30,21 @@ namespace AssetHierarchyAPI.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Users",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Username = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Password = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Role = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Users", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Signals",
                 columns: table => new
                 {
@@ -51,6 +66,11 @@ namespace AssetHierarchyAPI.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.InsertData(
+                table: "Users",
+                columns: new[] { "Id", "Password", "Role", "Username" },
+                values: new object[] { 1, "6G94qKPK8LYNjnTllCqm2G3BUM08AzOK7yW30tfjrMc=", "Admin", "admin" });
+
             migrationBuilder.CreateIndex(
                 name: "IX_AssetNodes_ParentId",
                 table: "AssetNodes",
@@ -60,6 +80,12 @@ namespace AssetHierarchyAPI.Migrations
                 name: "IX_Signals_AssetId",
                 table: "Signals",
                 column: "AssetId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Users_Username",
+                table: "Users",
+                column: "Username",
+                unique: true);
         }
 
         /// <inheritdoc />
@@ -67,6 +93,9 @@ namespace AssetHierarchyAPI.Migrations
         {
             migrationBuilder.DropTable(
                 name: "Signals");
+
+            migrationBuilder.DropTable(
+                name: "Users");
 
             migrationBuilder.DropTable(
                 name: "AssetNodes");

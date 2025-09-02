@@ -1,19 +1,15 @@
 ﻿using AssetHierarchyAPI.Data;
 using AssetHierarchyAPI.Extensions;
-using AssetHierarchyAPI.Interfaces;
-using AssetHierarchyAPI.Middleware;
-using AssetHierarchyAPI.Services;
-using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.OpenApi.Models;
+using Microsoft.IdentityModel.Tokens;
 using Serilog;
 using Serilog.Ui.Web;
-using System.Threading.RateLimiting;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-//   Serilog
+// Logging
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
     .WriteTo.File("Logs/log-.txt", rollingInterval: RollingInterval.Day)
@@ -21,55 +17,75 @@ Log.Logger = new LoggerConfiguration()
 
 builder.Host.UseSerilog();
 
-//   EF Core DbContext
+// EF Core
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("Connect")));
 
-//   CORS for frontend
+// CORS for frontend
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
         policy.WithOrigins("http://localhost:5173")
               .AllowAnyHeader()
-              .AllowAnyMethod();
+              .AllowAnyMethod()
+              .AllowCredentials(); // ✅ add this if you ever use cookies/credentials
     });
 });
 
-//   Controllers + Swagger
+// Controllers + Swagger
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-//   Storage service extension
+// Storage service extension
 builder.Services.AddStorageService(builder.Configuration);
 
-//   Serilog UI
-builder.Services.AddSerilogUi(optionsBuilder => { });
+// Serilog UI
+builder.Services.AddSerilogUi(_ => { });
+
+// JWT Authentication
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"])),
+
+            // ✅ Map role claim properly
+            RoleClaimType = "role",
+            NameClaimType = "username"
+        };
+    });
+
+builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
-//   HTTPS first
+// Middleware pipeline order matters!
 app.UseHttpsRedirection();
 
-//   Then CORS
 app.UseCors("AllowFrontend");
 
-//   Swagger (dev only)
+app.UseAuthentication();
+app.UseAuthorization(); // ✅ only once
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-//   Middleware
-app.UseAuthorization();
-app.UseMiddleware<ImportFormatValidationMiddleware>();
-
-//   Serilog UI dashboard
 app.UseSerilogUi();
 
-//   Map controllers
 app.MapControllers();
 
 app.Run();
