@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AssetHierarchyAPI.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250902150956_homechanges")]
-    partial class homechanges
+    [Migration("20250903054219_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
