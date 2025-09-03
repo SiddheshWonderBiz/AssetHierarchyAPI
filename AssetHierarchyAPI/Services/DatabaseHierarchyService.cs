@@ -92,6 +92,7 @@ namespace AssetHierarchyAPI.Services
                     )
                 {
                     throw new ArgumentException(
+                        
                         $"Invalid property '{prop.Name}'. Only 'id', 'name', and 'children' are allowed."
                     );
                 }

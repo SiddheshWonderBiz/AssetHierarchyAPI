@@ -58,23 +58,18 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             IssuerSigningKey = new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)
             ),
-            RoleClaimType = ClaimTypes.Role, // ensures [Authorize(Roles="")] works
+            RoleClaimType = ClaimTypes.Role, 
             NameClaimType = ClaimTypes.Name
         };
     });
 
 builder.Services.AddAuthorization();
 
-
-builder.Services.AddAuthorization();
-
 var app = builder.Build();
 
-// ✅ CRITICAL: Middleware pipeline order matters!
 app.UseHttpsRedirection();
 app.UseCors("AllowFrontend");
 
-// Authentication MUST come before Authorization
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -87,9 +82,5 @@ if (app.Environment.IsDevelopment())
 app.UseSerilogUi();
 app.MapControllers();
 
-Console.WriteLine("🚀 Application started with JWT authentication configured");
-Console.WriteLine($"JWT Issuer: {builder.Configuration["Jwt:Issuer"]}");
-Console.WriteLine($"JWT Audience: {builder.Configuration["Jwt:Audience"]}");
-Console.WriteLine($"JWT Key Length: {builder.Configuration["Jwt:Key"]?.Length}");
 
 app.Run();
