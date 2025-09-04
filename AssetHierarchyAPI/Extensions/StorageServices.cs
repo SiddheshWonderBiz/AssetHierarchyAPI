@@ -3,6 +3,7 @@
 
 
 using AssetHierarchyAPI.Interfaces;
+using AssetHierarchyAPI.Repositories;
 using AssetHierarchyAPI.Services;
 
 namespace AssetHierarchyAPI.Extensions
@@ -21,6 +22,7 @@ namespace AssetHierarchyAPI.Extensions
                     break;
                 case "DB":
                     //services.AddScoped<IHierarchyStorage, DatabaseHierarchyStorage>();
+                    services.AddScoped<IAssetNodeRepository, AssetNodeRepository>();
                     services.AddScoped<ISignalServices, SignalService>();
                     services.AddScoped<IHierarchyService, DatabaseHierarchyService>();
                     break;

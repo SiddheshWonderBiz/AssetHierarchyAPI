@@ -26,12 +26,12 @@ namespace AssetHierarchyAPI.Controllers
         }
 
         [HttpGet]
-        public IActionResult GetHierarchy()
+        public async Task<IActionResult> GetHierarchy()
         {
             try
             {
-                var tree = _service.LoadHierarchy();
-                int totalNodes = _service.CountNodes(tree);
+                var tree = await _service.LoadHierarchy();
+                int totalNodes = await _service.CountNodes();
                 return Ok(new { tree, totalNodes });
             }
             catch (InvalidOperationException ex)
@@ -44,18 +44,17 @@ namespace AssetHierarchyAPI.Controllers
             }
         }
 
+       
         [HttpPost("addhierarchy")]
         [Authorize(Roles = "Admin")]
-        public IActionResult AddHierarchy([FromBody] AssetNode newHierarchy)
+        public async Task<IActionResult> AddHierarchy([FromBody] AssetNode newHierarchy)
         {
             try
             {
                 if (newHierarchy == null)
-                {
                     return BadRequest(new { error = "Invalid hierarchy data" });
-                }
 
-                _service.AddHierarchy(newHierarchy);
+                await _service.AddHierarchy(newHierarchy);
                 return Ok(new { message = "Hierarchy added successfully" });
             }
             catch (InvalidOperationException ex)
@@ -68,36 +67,23 @@ namespace AssetHierarchyAPI.Controllers
             }
         }
 
+       
         [HttpPost("add")]
         [Authorize(Roles = "Admin")]
-        [ProducesResponseType(200)]
-        [ProducesResponseType(400)]
-        [ProducesResponseType(409)]
-        [ProducesResponseType(500)]
-        public IActionResult AddNode(int parentId, [FromBody] AssetNode newNode)
+        public async Task<IActionResult> AddNode(int parentId, [FromBody] AssetNode newNode)
         {
             try
             {
                 if (newNode == null)
-                {
                     return BadRequest(new { error = "Invalid node data" });
-                }
 
                 if (string.IsNullOrWhiteSpace(newNode.Name))
-                {
                     return BadRequest(new { error = "Node name is required" });
-                }
 
-                // Reset the ID to 0 to let EF auto-generate it
                 newNode.Id = 0;
+                newNode.Children ??= new List<AssetNode>();
 
-                // Initialize children if null
-                if (newNode.Children == null)
-                {
-                    newNode.Children = new List<AssetNode>();
-                }
-
-                _service.AddNode(parentId, newNode);
+                await _service.AddNode(parentId, newNode);
                 return Ok(new { message = "Node added successfully" });
             }
             catch (InvalidOperationException ex)
@@ -110,13 +96,14 @@ namespace AssetHierarchyAPI.Controllers
             }
         }
 
+        
         [HttpPut("update/{id}")]
         [Authorize(Roles = "Admin")]
-        public IActionResult UpdateNode(int id, [FromBody] string newName)
+        public async Task<IActionResult> UpdateNode(int id, [FromBody] string newName)
         {
             try
             {
-                var update = _service.UpdateNodeName(id, newName);
+                var update = await _service.UpdateNodeName(id, newName);
                 if (!update)
                     return NotFound($"Node with id {id} not found");
 
@@ -128,7 +115,7 @@ namespace AssetHierarchyAPI.Controllers
             }
             catch (InvalidOperationException ex)
             {
-                return Conflict(ex.Message); // duplicate name
+                return Conflict(ex.Message);
             }
         }
 
@@ -136,11 +123,11 @@ namespace AssetHierarchyAPI.Controllers
 
         [HttpDelete("remove/{id}")]
         [Authorize(Roles = "Admin")]
-        public IActionResult RemoveNode(int id)
+        public async Task<IActionResult> RemoveNode(int id)
         {
             try
             {
-                _service.RemoveNode(id);
+                await _service.RemoveNode(id);
                 return Ok(new { message = "Node removed successfully" });
             }
             catch (InvalidOperationException ex)
@@ -152,6 +139,7 @@ namespace AssetHierarchyAPI.Controllers
                 return StatusCode(500, new { error = "Unexpected error occurred: " + ex.Message });
             }
         }
+
 
         [HttpPost("upload")]
         [Authorize(Roles = "Admin")]
@@ -209,8 +197,9 @@ namespace AssetHierarchyAPI.Controllers
                     _service.AssignIds(newTree, ref idCounter);
                 }
 
-                _service.ReplaceTree(newTree);
+                await _service.ReplaceTree(newTree);
                 return Ok(new { message = "Hierarchy updated successfully" });
+
             }
             catch (JsonException ex)
             {
@@ -249,7 +238,7 @@ namespace AssetHierarchyAPI.Controllers
             {
                 if (storageType.Equals("DB", StringComparison.OrdinalIgnoreCase))
                 {
-                    var tree = _service.LoadHierarchy();
+                    var tree = await _service.LoadHierarchy();
                     var options = new JsonSerializerOptions
                     {
                         WriteIndented = true,

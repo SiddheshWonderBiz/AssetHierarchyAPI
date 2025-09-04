@@ -10,22 +10,23 @@ namespace AssetHierarchyAPI.Services
     // Service responsible for handling hierarchy operations using Database (EF Core)
     public class DatabaseHierarchyService : IHierarchyService
     {
-        private readonly AppDbContext _context; // EF DbContext for DB access
+        //private readonly AppDbContext _context; // EF DbContext for DB access
         private readonly ILoggingService _logger; // For logging errors
+        private readonly IAssetNodeRepository _repository;
 
-        public DatabaseHierarchyService(AppDbContext context, ILoggingService logger)
+        public DatabaseHierarchyService(IAssetNodeRepository repository, ILoggingService logger)
         {
-            _context = context;
+            _repository = repository;
             _logger = logger;
         }
 
         // Load hierarchy tree from database
-        public AssetNode LoadHierarchy()
+        public async Task<AssetNode> LoadHierarchy()
         {
             try
             {
                 // Load all nodes from DB
-                var allNodes = _context.AssetNodes.AsNoTracking().ToList();
+                var allNodes = await _repository.GetAllAsync();
 
                 // If DB is empty return a fresh Root node
                 if (!allNodes.Any())
@@ -114,7 +115,7 @@ namespace AssetHierarchyAPI.Services
         }
 
         // Add a new node under a parent
-        public void AddNode(int parentId, AssetNode newNode)
+        public async Task AddNode(int parentId, AssetNode newNode)
         {
             if (string.IsNullOrWhiteSpace(newNode.Name))
                 throw new ArgumentException("Node name cannot be empty.");
@@ -122,7 +123,7 @@ namespace AssetHierarchyAPI.Services
             try
             {
                 // Ensure parent exists
-                var parentExists = _context.AssetNodes.Any(n => n.Id == parentId);
+                var parentExists = _repository.ExistsAsync(parentId).Result;
                 if (!parentExists)
                 {
                     _logger.LogError($"Parent with ID {parentId} does not exist.");
@@ -130,7 +131,7 @@ namespace AssetHierarchyAPI.Services
                 }
 
                 // Ensure node with same name doesn't exist
-                var nodeExists = _context.AssetNodes.Any(n => n.Name == newNode.Name);
+                var nodeExists = _repository.GetAllAsync().Result.Any(n => n.Name == newNode.Name);
                 if (nodeExists)
                 {
                     _logger.LogError($"Node with name {newNode.Name} already exists.");
@@ -145,8 +146,8 @@ namespace AssetHierarchyAPI.Services
                     Children = new List<AssetNode>()
                 };
 
-                _context.AssetNodes.Add(nodeToAdd);
-                _context.SaveChanges();
+                _repository.AddAsync(nodeToAdd).Wait();
+                _repository.SaveChangesAsync().Wait();
             }
             catch (Exception ex)
             {
@@ -154,30 +155,30 @@ namespace AssetHierarchyAPI.Services
             }
         }
         //update node 
-        public bool UpdateNodeName(int id, string newName)
+        public async Task<bool> UpdateNodeName(int id, string newName)
         {
-            var node = _context.AssetNodes.FirstOrDefault(n => n.Id == id);
+            var node = await _repository.GetByIdAsync(id);
             if (node == null)
             {
                 return false;
             }
-            var nodeExists = _context.AssetNodes.Any(n => n.Name == newName && n.Id != id);
+            var nodeExists = _repository.GetAllAsync().Result.Any(n => n.Name == newName && n.Id != id);
             if (nodeExists)
             {
                 _logger.LogError($"Node with name {newName} already exists.");
                 throw new InvalidOperationException($"A node with name {newName} already exists.");
             }
             node.Name = newName;
-            _context.SaveChanges();
+            _repository.SaveChangesAsync().Wait();
             return true;
         }
 
         // Remove a node and all its descendants
-        public void RemoveNode(int nodeId)
+        public async Task RemoveNode(int nodeId)
         {
             try
             {
-                var allNodes = _context.AssetNodes.ToList();
+                var allNodes = _repository.GetAllAsync().Result;
                 if(nodeId == 1 )
                 {
                     throw new InvalidOperationException("Root Node Can't be deleted ");
@@ -193,9 +194,8 @@ namespace AssetHierarchyAPI.Services
                 idsToRemove.Add(nodeId);
 
                 // Remove nodes in one go
-                var nodesToRemove = _context.AssetNodes.Where(n => idsToRemove.Contains(n.Id)).ToList();
-                _context.AssetNodes.RemoveRange(nodesToRemove);
-                _context.SaveChanges();
+                var nodesToRemove = allNodes.Where(n => idsToRemove.Contains(n.Id)).ToList();
+                _repository.DeleteRangeAsync(nodesToRemove);
             }
             catch (KeyNotFoundException)
             {
@@ -229,11 +229,12 @@ namespace AssetHierarchyAPI.Services
         }
 
         // Count total number of nodes in DB
-        public int CountNodes(AssetNode node)
+        public async Task<int> CountNodes()
         {
             try
             {
-                return _context.AssetNodes.Count();
+                var nodes = await _repository.GetAllAsync();
+                return nodes.Count;
             }
             catch (Exception ex)
             {
@@ -241,8 +242,9 @@ namespace AssetHierarchyAPI.Services
             }
         }
 
+
         // Add a complete hierarchy (tree) to DB
-        public void AddHierarchy(AssetNode node)
+        public async Task AddHierarchy(AssetNode node)
         {
             if (node == null)
                 throw new ArgumentException("Hierarchy cannot be null.");
@@ -250,7 +252,7 @@ namespace AssetHierarchyAPI.Services
             try
             {
                 // Ensure DB has a root, otherwise create one
-                var root = _context.AssetNodes.FirstOrDefault(n => n.ParentId == null);
+                var root = await _repository.GetRootAsync();
                 if (root == null)
                 {
                     root = new AssetNode
@@ -258,13 +260,13 @@ namespace AssetHierarchyAPI.Services
                         Name = "Root",
                         ParentId = null
                     };
-                    _context.AssetNodes.Add(root);
-                    _context.SaveChanges();
+                    await _repository.AddAsync(root);
+                    await _repository.SaveChangesAsync();
                 }
 
                 // Recursively add all children
                 AddNodeRecursively(node, root.Id);
-                _context.SaveChanges();
+                await _repository.SaveChangesAsync();
             }
             catch (Exception ex)
             {
@@ -282,8 +284,8 @@ namespace AssetHierarchyAPI.Services
                 Children = new List<AssetNode>()
             };
 
-            _context.AssetNodes.Add(entity);
-            _context.SaveChanges();
+            _repository.AddAsync(entity);
+            _repository.SaveChangesAsync();
 
             // Recurse for children
             if (node.Children != null)
@@ -296,16 +298,14 @@ namespace AssetHierarchyAPI.Services
         }
 
         // Replace entire hierarchy with a new one
-        public void ReplaceTree(AssetNode newRoot)
+        public async Task ReplaceTree(AssetNode newRoot)
         {
-            using var transaction = _context.Database.BeginTransaction();
+            await _repository.BeginTransactionAsync();
             try
             {
                
                     // Fallback: delete all one by one  + reseed identity
-                    _context.Database.ExecuteSqlRaw("DELETE FROM AssetNodes");
-                    _context.Database.ExecuteSqlRaw("DBCC CHECKIDENT ('AssetNodes', RESEED, 0)");
-               
+                    await _repository.ClearAsync();
 
                 // Insert new root + its children
                 if (newRoot != null)
@@ -313,11 +313,11 @@ namespace AssetHierarchyAPI.Services
                     AddNodeRecursively(newRoot, null);
                 }
 
-                transaction.Commit();
+                await _repository.CommitTransactionAsync();
             }
             catch (Exception ex)
             {
-                transaction.Rollback();
+                await _repository.RollbackTransactionAsync();
                 throw new ApplicationException("Failed to replace hierarchy. Please try again later.", ex);
             }
         }

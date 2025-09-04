@@ -17,13 +17,16 @@ namespace AssetHierarchyAPI.Services
         }
 
         // loads the hierarchy tree from storage
-        public AssetNode LoadHierarchy() => _storage.LoadHierarchy();
+        public Task<AssetNode> LoadHierarchy()
+        {
+            return Task.FromResult(_storage.LoadHierarchy());
+        }
 
         // saves the hierarchy tree to storage
         public void SaveHierarchy(AssetNode root) => _storage.SaveHierarchy(root);
 
         // Adds a new node 
-        public void AddNode(int parentId, AssetNode newNode)
+        public async Task AddNode(int parentId, AssetNode newNode)
         {
             var root = _storage.LoadHierarchy();
 
@@ -46,6 +49,7 @@ namespace AssetHierarchyAPI.Services
                 _storage.SaveHierarchy(root);   
                 _logger.LogInfo($"Node {newNode.Id}:{newNode.Name} added under parent {parentId}.");
             }
+
         }
 
 
@@ -98,14 +102,14 @@ namespace AssetHierarchyAPI.Services
         }
 
         //update Node
-        public bool UpdateNodeName(int id, string newName)
+        public Task<bool> UpdateNodeName(int id, string newName)
         {
             var root = _storage.LoadHierarchy();
             var node = FindNode(root, id);
             if (node == null)
             {
                 _logger.LogError($"Node with ID {id} not found.");
-                return false; 
+                return Task.FromResult(false);
             }
             if(NodeExists(root , -1 , newName))
             {
@@ -117,7 +121,7 @@ namespace AssetHierarchyAPI.Services
             _storage.SaveHierarchy(root);
             _logger.LogInfo($"Node {id} renamed from '{oldName}' to '{newName}'.");
 
-            return true;
+            return Task.FromResult(true);
         }
 
         // Checks if a node with a given ID already exists in the hierarchy
@@ -147,7 +151,7 @@ namespace AssetHierarchyAPI.Services
         }
 
         // Removes a node from the hierarchy by ID
-        public void RemoveNode(int nodeId)
+        public Task RemoveNode(int nodeId)
         {
             var root = _storage.LoadHierarchy();
 
@@ -166,6 +170,7 @@ namespace AssetHierarchyAPI.Services
             }
             _storage.SaveHierarchy(root);
             _logger.LogInfo($"Node {nodeId} removed.");
+            return Task.CompletedTask;
         }
 
         // Helper method for recursive node removal
@@ -227,7 +232,7 @@ namespace AssetHierarchyAPI.Services
 
 
         // Completely replaces the existing tree with a new one
-        public void ReplaceTree(AssetNode newRoot)
+        public Task ReplaceTree(AssetNode newRoot)
         {
             Validate(newRoot); // Validate the new root node
             NormalizeChildren(newRoot); 
@@ -237,11 +242,12 @@ namespace AssetHierarchyAPI.Services
             AssignMissingIds(newRoot, ref maxId); // Assign IDs to nodes that don't have one
             ValidateUniqueness(newRoot); // Ensure no duplicate names
 
-            int totalCount = CountNodes(newRoot) - 1   ; // Count total number of nodes
+            int totalCount = CountNodesRecursive(newRoot) - 1   ; // Count total number of nodes
             Console.WriteLine(totalCount);
 
             _storage.SaveHierarchy(newRoot);
             _logger.LogInfo($"Hierarchy replaced successfully. Total nodes: {totalCount  }");
+            return Task.CompletedTask;
         }
 
         // Ensures no null Children lists 
@@ -280,19 +286,25 @@ namespace AssetHierarchyAPI.Services
                 AssignMissingIds(child, ref maxId);
             }
         }
-
-        // Counts the total number of nodes 
-        public int CountNodes(AssetNode node)
+        private int CountNodesRecursive(AssetNode node)
         {
-            int count = 1; 
+            int count = 1;
             foreach (var child in node.Children)
             {
-                count += CountNodes(child); 
+                count += CountNodesRecursive(child);
             }
             return count;
         }
+        // Replace the CountNodes method with a synchronous version
+        public Task<int> CountNodes()
+        {
+            var root = _storage.LoadHierarchy();
+            int count = CountNodesRecursive(root);
+            return Task.FromResult(count);
+        }
+
         //to add new hierarchy 
-        public void AddHierarchy(AssetNode node )
+        public Task AddHierarchy(AssetNode node )
         {
             var tree = _storage.LoadHierarchy();
             if(tree.Children == null)
@@ -315,6 +327,7 @@ namespace AssetHierarchyAPI.Services
             }
             tree.Children.Add(node);
             _storage.SaveHierarchy(tree);
+            return Task.CompletedTask;
         }
 
        // id auto genration 

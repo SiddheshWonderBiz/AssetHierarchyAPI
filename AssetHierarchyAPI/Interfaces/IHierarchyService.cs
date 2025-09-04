@@ -1,20 +1,19 @@
-﻿// Interfaces/IHierarchyService.cs
-using AssetHierarchyAPI.Models;
+﻿using AssetHierarchyAPI.Models;
 using System.Text.Json;
 
 namespace AssetHierarchyAPI.Interfaces
 {
     public interface IHierarchyService
     {
-        AssetNode LoadHierarchy();
-        void AddNode(int parentId, AssetNode newNode);
-        void RemoveNode(int nodeId);
+        Task<AssetNode> LoadHierarchy();
+        Task AddNode(int parentId, AssetNode newNode);
+        Task RemoveNode(int nodeId);
 
         void AssignIds(AssetNode root, ref int currentId);
-        bool UpdateNodeName(int id, string newName);
-        int CountNodes(AssetNode node);
-        void AddHierarchy(AssetNode node);
-        void ReplaceTree(AssetNode node);
+        Task<bool> UpdateNodeName(int id, string newName);
+        Task<int> CountNodes();
+        Task AddHierarchy(AssetNode node);
+        Task ReplaceTree(AssetNode node);
 
         void ValidateNode(JsonElement element);
     }
