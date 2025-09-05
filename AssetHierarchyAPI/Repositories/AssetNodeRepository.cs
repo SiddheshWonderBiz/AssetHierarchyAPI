@@ -51,6 +51,7 @@ namespace AssetHierarchyAPI.Repositories
             _context.AssetNodes.RemoveRange(assetNodes);
             await _context.SaveChangesAsync();
         }
+        //replace tree methods
         public async Task BeginTransactionAsync()
         {
             _transaction = await _context.Database.BeginTransactionAsync();
@@ -58,16 +59,25 @@ namespace AssetHierarchyAPI.Repositories
         public async Task CommitTransactionAsync()
         {
             if (_transaction != null)
+            {
                 await _transaction.CommitAsync();
+                await _transaction.DisposeAsync();
+                _transaction = null;
+            }
         }
 
         public async Task RollbackTransactionAsync()
         {
             if (_transaction != null)
+            {
                 await _transaction.RollbackAsync();
+                await _transaction.DisposeAsync();
+                _transaction = null;
+            }
         }
 
-    public async Task ClearAsync()
+
+        public async Task ClearAsync()
         {
             await _context.Database.ExecuteSqlRawAsync("DELETE FROM AssetNodes");
             await _context.Database.ExecuteSqlRawAsync("DBCC CHECKIDENT ('AssetNodes', RESEED, 0)");

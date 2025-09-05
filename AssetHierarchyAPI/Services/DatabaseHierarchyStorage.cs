@@ -79,8 +79,7 @@ namespace AssetHierarchyAPI.Services
             };
 
             _context.AssetNodes.Add(entity);
-            _context.SaveChanges(); // Save to get the generated ID
-
+            _context.SaveChanges(); 
             // Update the original node's ID for reference
             node.Id = entity.Id;
 

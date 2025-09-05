@@ -26,7 +26,7 @@ namespace AssetHierarchyAPI.Services
         public void SaveHierarchy(AssetNode root) => _storage.SaveHierarchy(root);
 
         // Adds a new node 
-        public async Task AddNode(int parentId, AssetNode newNode)
+        public  Task AddNode(int parentId, AssetNode newNode)
         {
             var root = _storage.LoadHierarchy();
 
@@ -49,6 +49,7 @@ namespace AssetHierarchyAPI.Services
                 _storage.SaveHierarchy(root);   
                 _logger.LogInfo($"Node {newNode.Id}:{newNode.Name} added under parent {parentId}.");
             }
+            return Task.CompletedTask;
 
         }
 

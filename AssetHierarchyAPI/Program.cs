@@ -1,5 +1,6 @@
 ﻿using AssetHierarchyAPI.Data;
 using AssetHierarchyAPI.Extensions;
+using AssetHierarchyAPI.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -67,11 +68,14 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
+app.UseMiddleware<ErrorHandlingMiddleware>();
 app.UseHttpsRedirection();
 app.UseCors("AllowFrontend");
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+
 
 if (app.Environment.IsDevelopment())
 {
