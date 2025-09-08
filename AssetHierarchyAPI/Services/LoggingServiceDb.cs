@@ -19,19 +19,20 @@ namespace AssetHierarchyAPI.Services
         public async Task LogsActionsAsync(string actionType, string? targetName = null)
         {
             var user = _contextAccessor.HttpContext?.User;
-            var userId = int.TryParse(user?.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var id)
-                ? id : 0;
-
+            
             var username = user?.Identity?.Name ?? "Unknown";
             var role = user?.FindFirst(ClaimTypes.Role)?.Value ?? "Unknown";
             var log = new AssetLog
             {
-                UserId = userId ,
+                
                 Username = username ,
                 Role = role ,
                 Action =    actionType ,
                 TargetName = targetName,
-                TimeStamp = DateTime.UtcNow,
+                TimeStamp = TimeZoneInfo.ConvertTimeFromUtc(
+    DateTime.UtcNow,
+    TimeZoneInfo.FindSystemTimeZoneById("India Standard Time")
+)
             };
             await _context.Assetslogs.AddAsync(log);
             await _context.SaveChangesAsync();

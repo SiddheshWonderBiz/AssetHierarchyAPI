@@ -5,10 +5,10 @@ namespace AssetHierarchyAPI.Interfaces
 {
     public interface ISignalServices
     {
-        IEnumerable<Signals> GetByAsset(int assetId);
-        Signals? GetById(int id);
-        Signals AddSignal(int assetId, GlobalSignalDTO signals);
-        bool UpdateSignal(int id, GlobalSignalDTO updated);
-        bool DeleteSignal(int id);
+        Task<IEnumerable<Signals>> GetByAssetAsync(int assetId);
+        Task<Signals?> GetByIdAsync(int id);
+        Task<Signals> AddSignalAsync(int assetId, GlobalSignalDTO signals);
+        Task<bool> UpdateSignalAsync(int id, GlobalSignalDTO updated);
+        Task<bool> DeleteSignalAsync(int id);
     }
 }

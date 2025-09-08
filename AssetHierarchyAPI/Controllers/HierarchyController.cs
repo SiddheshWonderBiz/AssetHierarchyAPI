@@ -1,11 +1,13 @@
-﻿using AssetHierarchyAPI.Interfaces;
+﻿using AssetHierarchyAPI.Data;
+using AssetHierarchyAPI.Interfaces;
 using AssetHierarchyAPI.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Globalization;
 using System.Text.Json;
 using System.Xml.Serialization;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
-using Microsoft.AspNetCore.Authorization;
 
 
 namespace AssetHierarchyAPI.Controllers
@@ -17,12 +19,14 @@ namespace AssetHierarchyAPI.Controllers
         private readonly IHierarchyService _service;
         private readonly IWebHostEnvironment _env;
         private readonly IConfiguration _configuration;
+        private readonly AppDbContext _context;
 
-        public HierarchyController(IHierarchyService service, IWebHostEnvironment env, IConfiguration configuration)
+        public HierarchyController(IHierarchyService service, IWebHostEnvironment env, IConfiguration configuration , AppDbContext context)
         {
             _service = service;
             _env = env;
             _configuration = configuration;
+            _context = context;
         }
 
         [HttpGet]
@@ -43,8 +47,17 @@ namespace AssetHierarchyAPI.Controllers
                 return StatusCode(500, new { error = "Unexpected error occurred: " + ex.Message });
             }
         }
+        [HttpGet("logs")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetAllLogs()
+        {
+            var logs = await _context.Assetslogs
+                                     .OrderByDescending(l => l.TimeStamp)
+                                     .ToListAsync();
 
-       
+            return Ok(logs);
+        }
+
         [HttpPost("addhierarchy")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> AddHierarchy([FromBody] AssetNode newHierarchy)

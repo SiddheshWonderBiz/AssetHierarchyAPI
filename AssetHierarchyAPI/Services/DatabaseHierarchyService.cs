@@ -108,13 +108,13 @@ namespace AssetHierarchyAPI.Services
                 throw new KeyNotFoundException($"Parent with ID {parentId} does not exist.");
             }
 
-            var nodeExists = (await _repository.GetAllAsync()).Any(n => n.Name == newNode.Name);
-            if (nodeExists)
-            {
-                _logger.LogError($"Node with name {newNode.Name} already exists.");
-                throw new InvalidOperationException($"A node with name '{newNode.Name}' already exists.");
-            }
+            var siblings = (await _repository.GetAllAsync()).Where(n => n.ParentId == parentId);
 
+            if (siblings.Any(n => n.Name.Equals(newNode.Name, StringComparison.OrdinalIgnoreCase)))
+            {
+                _logger.LogError($"Node with name {newNode.Name} already exists under parent {parentId}.");
+                throw new InvalidOperationException($"A node with name '{newNode.Name}' already exists under this parent.");
+            }
             var nodeToAdd = new AssetNode
             {
                 Name = newNode.Name,
@@ -185,7 +185,7 @@ namespace AssetHierarchyAPI.Services
 
         public void AssignIds(AssetNode root, ref int currentId)
         {
-            // Empty placeholder
+            //EF will do automatically
         }
 
         public async Task<int> CountNodes()
@@ -220,6 +220,27 @@ namespace AssetHierarchyAPI.Services
 
         private async Task AddNodeRecursively(AssetNode node, int? parentId)
         {
+
+            if (string.IsNullOrWhiteSpace(node.Name))
+            {
+                throw new ArgumentException("Node name cannot be empty.");
+            }
+
+            if (parentId.HasValue)
+            {
+                var parent = await _repository.GetByIdAsync(parentId.Value);
+                if(parent != null && parent.ParentId == null)
+                {
+                    var siblings = (await _repository.GetAllAsync()).Any(n => n.ParentId == parentId && n.Name.Equals(node.Name, StringComparison.OrdinalIgnoreCase));
+                    if (siblings)
+                    {
+                        throw new InvalidOperationException(
+                            $"A hierarchy with the name '{node.Name}' already exists under root."
+                        );
+                    }
+                }
+                
+            }
             var entity = new AssetNode
             {
                 Name = node.Name ?? "Unnamed Node",
@@ -255,7 +276,7 @@ namespace AssetHierarchyAPI.Services
 
                 await _repository.CommitTransactionAsync();
 
-                await _loggerDb.LogsActionsAsync("Replace Tree", newRoot?.Name ?? "Root");
+                await _loggerDb.LogsActionsAsync("Uploaded file ", newRoot?.Name ?? "Root");
             }
             catch
             {
