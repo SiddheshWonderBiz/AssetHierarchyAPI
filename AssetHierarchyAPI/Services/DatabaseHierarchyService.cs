@@ -1,6 +1,8 @@
 ﻿using AssetHierarchyAPI.Data;
+using AssetHierarchyAPI.Hubs;
 using AssetHierarchyAPI.Interfaces;
 using AssetHierarchyAPI.Models;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 
@@ -12,15 +14,17 @@ namespace AssetHierarchyAPI.Services
         private readonly ILoggingService _logger;       // for technical logs (errors, exceptions)
         private readonly IAssetNodeRepository _repository;
         private readonly ILoggingServiceDb _loggerDb;   // for user action logs (audit trail)
-
+        private readonly IHubContext<NotificationHub> _hubContext;
         public DatabaseHierarchyService(
             IAssetNodeRepository repository,
             ILoggingService logger,
-            ILoggingServiceDb loggerDb)   // inject here
+            ILoggingServiceDb loggerDb ,
+            IHubContext<NotificationHub> hubContext)
         {
             _repository = repository;
             _logger = logger;
             _loggerDb = loggerDb;
+            _hubContext = hubContext;
         }
 
         // Load hierarchy tree from database
@@ -126,6 +130,8 @@ namespace AssetHierarchyAPI.Services
             await _repository.SaveChangesAsync();
 
             await _loggerDb.LogsActionsAsync("Add Node", newNode.Name);
+            await _hubContext.Clients.All.SendAsync("nodeAdded",
+            $"New asset '{newNode.Name}' added under parent ID {parentId}");
         }
 
         // Update node

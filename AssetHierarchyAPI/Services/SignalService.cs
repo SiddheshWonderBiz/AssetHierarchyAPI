@@ -1,7 +1,9 @@
 ﻿using AssetHierarchyAPI.Controllers;
 using AssetHierarchyAPI.Data;
+using AssetHierarchyAPI.Hubs;
 using AssetHierarchyAPI.Interfaces;
 using AssetHierarchyAPI.Models;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
 namespace AssetHierarchyAPI.Services
@@ -10,14 +12,16 @@ namespace AssetHierarchyAPI.Services
     {
         private readonly AppDbContext _context;
         private readonly ILoggingServiceDb _loggerdb;
+        private readonly IHubContext<NotificationHub>   _hubContext;
 
         private static readonly HashSet<string> allowed =
             new(StringComparer.OrdinalIgnoreCase) { "int", "string", "real" };
 
-        public SignalService(AppDbContext context, ILoggingServiceDb loggerdb)
+        public SignalService(AppDbContext context, ILoggingServiceDb loggerdb , IHubContext<NotificationHub> hubContext)
         {
             _context = context;
             _loggerdb = loggerdb;
+            _hubContext = hubContext;
         }
 
         public async Task<IEnumerable<Signals>> GetByAssetAsync(int assetId)
@@ -77,7 +81,8 @@ namespace AssetHierarchyAPI.Services
             await _context.SaveChangesAsync();
 
             await _loggerdb.LogsActionsAsync("Signal added", signal.Name);
-
+            await _hubContext.Clients.All.SendAsync("signalAdded",
+            $"New signal '{signal.Name}' added to Asset ID {assetId}");
             return signal;
         }
 

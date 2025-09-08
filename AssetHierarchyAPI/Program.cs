@@ -1,5 +1,6 @@
 ﻿using AssetHierarchyAPI.Data;
 using AssetHierarchyAPI.Extensions;
+using AssetHierarchyAPI.Hubs;
 using AssetHierarchyAPI.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -30,7 +31,9 @@ builder.Services.AddCors(options =>
         policy.WithOrigins("http://localhost:5173")
               .AllowAnyHeader()
               .AllowAnyMethod()
-              .AllowCredentials();
+              .AllowCredentials()
+              .WithExposedHeaders("*");
+
     });
 });
 
@@ -63,9 +66,29 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             RoleClaimType = ClaimTypes.Role, 
             NameClaimType = ClaimTypes.Name
         };
+        options.Events = new JwtBearerEvents
+        {
+           OnMessageReceived = context =>
+           {
+               var accessToken = context.Request.Query["access_token"];
+
+               // If the request is for our hub...
+               var path = context.HttpContext.Request.Path;
+               if (!string.IsNullOrEmpty(accessToken) &&
+                    path.StartsWithSegments("/notificationHub"))
+               {
+                   // Read the token from query string
+                   context.Token = accessToken;
+               }
+
+               return Task.CompletedTask;
+           }
+        };
     });
 
 builder.Services.AddAuthorization();
+builder.Services.AddSignalR();
+
 
 var app = builder.Build();
 
@@ -86,6 +109,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseSerilogUi();
 app.MapControllers();
+app.MapHub<NotificationHub>("/notificationHub");
 
 
 app.Run();
