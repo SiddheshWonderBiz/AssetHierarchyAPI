@@ -81,8 +81,8 @@ namespace AssetHierarchyAPI.Services
             await _context.SaveChangesAsync();
 
             await _loggerdb.LogsActionsAsync("Signal added", signal.Name);
-            await _hubContext.Clients.All.SendAsync("signalAdded",
-            $"New signal '{signal.Name}' added to Asset ID {assetId}");
+           await _hubContext.Clients.All.SendAsync("signalAdded", signal.Name);
+
             return signal;
         }
 

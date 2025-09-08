@@ -130,8 +130,8 @@ namespace AssetHierarchyAPI.Services
             await _repository.SaveChangesAsync();
 
             await _loggerDb.LogsActionsAsync("Add Node", newNode.Name);
-            await _hubContext.Clients.All.SendAsync("nodeAdded",
-            $"New asset '{newNode.Name}' added under parent ID {parentId}");
+            await _hubContext.Clients.All.SendAsync("nodeAdded", newNode.Name);
+
         }
 
         // Update node
