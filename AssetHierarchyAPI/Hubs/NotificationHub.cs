@@ -5,7 +5,7 @@ namespace AssetHierarchyAPI.Hubs
     [Authorize]
     public class NotificationHub : Hub
     {
-        public async Task SendNotifiaction(string message)
+        public async Task SendNotification(string message)
         {
             await Clients.All.SendAsync("nodeAdded", message);
         }
