@@ -13,11 +13,13 @@ namespace AssetHierarchyAPI.Data
         public DbSet<Signals> Signals { get; set; }
 
         public DbSet<User> Users { get; set; }
+
+        public DbSet<AssetLog> Assetslogs { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
             modelBuilder.Entity<AssetNode>()
-                .HasOne(n => n.Parent)                 // Each node has one Parent
+                .HasOne(n => n.Parent)                 
                 .WithMany(n => n.Children)             // A parent can have many Children
                 .HasForeignKey(n => n.ParentId)        // FK column
                 .OnDelete(DeleteBehavior.ClientCascade);     // If parent deleted, children also deleted

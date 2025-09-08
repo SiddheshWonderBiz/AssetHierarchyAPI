@@ -9,13 +9,18 @@ namespace AssetHierarchyAPI.Services
     // Service responsible for handling hierarchy operations using Database (EF Core)
     public class DatabaseHierarchyService : IHierarchyService
     {
-        private readonly ILoggingService _logger;
+        private readonly ILoggingService _logger;       // for technical logs (errors, exceptions)
         private readonly IAssetNodeRepository _repository;
+        private readonly ILoggingServiceDb _loggerDb;   // for user action logs (audit trail)
 
-        public DatabaseHierarchyService(IAssetNodeRepository repository, ILoggingService logger)
+        public DatabaseHierarchyService(
+            IAssetNodeRepository repository,
+            ILoggingService logger,
+            ILoggingServiceDb loggerDb)   // inject here
         {
             _repository = repository;
             _logger = logger;
+            _loggerDb = loggerDb;
         }
 
         // Load hierarchy tree from database
@@ -23,20 +28,17 @@ namespace AssetHierarchyAPI.Services
         {
             var allNodes = await _repository.GetAllAsync();
 
-            // If DB is empty return a fresh Root node
             if (!allNodes.Any())
             {
                 return new AssetNode { Id = 1, Name = "Root", Children = new List<AssetNode>() };
             }
 
-            // Find the root node (ParentId is NULL)
             var root = allNodes.FirstOrDefault(n => n.ParentId == null);
             if (root == null)
             {
                 return new AssetNode { Id = 1, Name = "Root", Children = new List<AssetNode>() };
             }
 
-            // Recursively build tree from flat list
             BuildTree(root, allNodes);
             return root;
         }
@@ -44,7 +46,6 @@ namespace AssetHierarchyAPI.Services
         // Validation
         public void ValidateNode(JsonElement element)
         {
-            // Find "name" property (case-insensitive)
             var nameProp = element.EnumerateObject()
                                   .FirstOrDefault(p => p.Name.Equals("name", StringComparison.OrdinalIgnoreCase));
 
@@ -53,7 +54,6 @@ namespace AssetHierarchyAPI.Services
                 throw new ArgumentException("Each node must have a string 'name'.");
             }
 
-            // If "children" exists, it must be an array
             var childrenProp = element.EnumerateObject()
                                       .FirstOrDefault(p => p.Name.Equals("children", StringComparison.OrdinalIgnoreCase));
 
@@ -66,11 +66,10 @@ namespace AssetHierarchyAPI.Services
 
                 foreach (var child in childrenProp.Value.EnumerateArray())
                 {
-                    ValidateNode(child); // recurse
+                    ValidateNode(child);
                 }
             }
 
-            // Fail on unknown properties
             foreach (var prop in element.EnumerateObject())
             {
                 if (!prop.Name.Equals("id", StringComparison.OrdinalIgnoreCase) &&
@@ -80,14 +79,11 @@ namespace AssetHierarchyAPI.Services
                     !prop.Name.Equals("parent", StringComparison.OrdinalIgnoreCase) &&
                     !prop.Name.Equals("Signals", StringComparison.OrdinalIgnoreCase))
                 {
-                    throw new ArgumentException(
-                        $"Invalid property '{prop.Name}'. Only 'id', 'name', and 'children' are allowed."
-                    );
+                    throw new ArgumentException($"Invalid property '{prop.Name}'.");
                 }
             }
         }
 
-        // Helper function: Build parent-child relationship
         private void BuildTree(AssetNode parent, List<AssetNode> allNodes)
         {
             var children = allNodes.Where(n => n.ParentId == parent.Id).ToList();
@@ -99,13 +95,12 @@ namespace AssetHierarchyAPI.Services
             }
         }
 
-        // Add a new node under a parent
+        // Add a new node
         public async Task AddNode(int parentId, AssetNode newNode)
         {
             if (string.IsNullOrWhiteSpace(newNode.Name))
                 throw new ArgumentException("Node name cannot be empty.");
 
-            // Ensure parent exists
             var parentExists = await _repository.ExistsAsync(parentId);
             if (!parentExists)
             {
@@ -113,7 +108,6 @@ namespace AssetHierarchyAPI.Services
                 throw new KeyNotFoundException($"Parent with ID {parentId} does not exist.");
             }
 
-            // Ensure node with same name doesn't exist
             var nodeExists = (await _repository.GetAllAsync()).Any(n => n.Name == newNode.Name);
             if (nodeExists)
             {
@@ -130,16 +124,15 @@ namespace AssetHierarchyAPI.Services
 
             await _repository.AddAsync(nodeToAdd);
             await _repository.SaveChangesAsync();
+
+            await _loggerDb.LogsActionsAsync("Add Node", newNode.Name);
         }
 
         // Update node
         public async Task<bool> UpdateNodeName(int id, string newName)
         {
             var node = await _repository.GetByIdAsync(id);
-            if (node == null)
-            {
-                return false;
-            }
+            if (node == null) return false;
 
             var nodeExists = (await _repository.GetAllAsync()).Any(n => n.Name == newName && n.Id != id);
             if (nodeExists)
@@ -150,10 +143,12 @@ namespace AssetHierarchyAPI.Services
 
             node.Name = newName;
             await _repository.SaveChangesAsync();
+
+            await _loggerDb.LogsActionsAsync("Update Node", newName);
             return true;
         }
 
-        // Remove a node and all its descendants
+        // Remove node
         public async Task RemoveNode(int nodeId)
         {
             var allNodes = await _repository.GetAllAsync();
@@ -170,6 +165,8 @@ namespace AssetHierarchyAPI.Services
 
             var nodesToRemove = allNodes.Where(n => idsToRemove.Contains(n.Id)).ToList();
             await _repository.DeleteRangeAsync(nodesToRemove);
+
+            await _loggerDb.LogsActionsAsync("Remove Node", nodeToRemove.Name);
         }
 
         private List<int> GetAllDescendantIds(int parentId, List<AssetNode> allNodes)
@@ -191,14 +188,13 @@ namespace AssetHierarchyAPI.Services
             // Empty placeholder
         }
 
-        // Count total number of nodes in DB
         public async Task<int> CountNodes()
         {
             var nodes = await _repository.GetAllAsync();
             return nodes.Count;
         }
 
-        // Add a complete hierarchy (tree) to DB
+        // Add complete hierarchy
         public async Task AddHierarchy(AssetNode node)
         {
             if (node == null)
@@ -218,6 +214,8 @@ namespace AssetHierarchyAPI.Services
 
             await AddNodeRecursively(node, root.Id);
             await _repository.SaveChangesAsync();
+
+            await _loggerDb.LogsActionsAsync("Add Hierarchy", node.Name ?? "Unnamed Hierarchy");
         }
 
         private async Task AddNodeRecursively(AssetNode node, int? parentId)
@@ -241,7 +239,7 @@ namespace AssetHierarchyAPI.Services
             }
         }
 
-        // Replace entire hierarchy with a new one
+        // Replace full tree
         public async Task ReplaceTree(AssetNode newRoot)
         {
             await _repository.BeginTransactionAsync();
@@ -256,6 +254,8 @@ namespace AssetHierarchyAPI.Services
                 }
 
                 await _repository.CommitTransactionAsync();
+
+                await _loggerDb.LogsActionsAsync("Replace Tree", newRoot?.Name ?? "Root");
             }
             catch
             {

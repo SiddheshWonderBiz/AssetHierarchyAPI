@@ -25,6 +25,7 @@ namespace AssetHierarchyAPI.Extensions
                     services.AddScoped<IAssetNodeRepository, AssetNodeRepository>();
                     services.AddScoped<ISignalServices, SignalService>();
                     services.AddScoped<IHierarchyService, DatabaseHierarchyService>();
+                    services.AddScoped<ILoggingServiceDb, LoggingServiceDb>();
                     break;
                 default:
                     services.AddScoped<IHierarchyStorage, JsonHierarchyStorage>();
