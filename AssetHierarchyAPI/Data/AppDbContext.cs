@@ -37,6 +37,7 @@ namespace AssetHierarchyAPI.Data
             {
                 Id = 1,
                 Username = "admin",
+                UserEmail = "admin123@gmail.com",
                 Password = Convert.ToBase64String(
         SHA256.HashData(Encoding.UTF8.GetBytes("Admin@123"))
     ),

@@ -105,7 +105,7 @@ namespace AssetHierarchyAPI.Services
         {
             if (string.IsNullOrWhiteSpace(newNode.Name))
                 throw new ArgumentException("Node name cannot be empty.");
-            string pattern = @"^[a-zA-Z0-9_-]+$";
+            string pattern = @"^[a-zA-Z0-9_\-\s]+$";
             bool isvalid = Regex.IsMatch(newNode.Name, pattern);
             if (!isvalid)
             {
@@ -147,7 +147,7 @@ namespace AssetHierarchyAPI.Services
             var node = await _repository.GetByIdAsync(id);
             if (node == null) return false;
 
-            string pattern = @"^[a-zA-Z0-9_-]+$";
+            string pattern = @"^[a-zA-Z0-9_\-\s]+$";
             bool isvalid = Regex.IsMatch(newName, pattern);
             if (!isvalid)
             {
@@ -250,13 +250,7 @@ namespace AssetHierarchyAPI.Services
             {
                 throw new ArgumentException("Node name cannot be empty.");
             }
-            string pattern = @"^[a-zA-Z0-9_-]+$";
-            bool isvalid = Regex.IsMatch(node.Name, pattern);
-            if (!isvalid)
-            {
-                throw new ArgumentException("Invalid name pattern allowed only a-z,1-9 and -_");
-            }
-
+            
             if (parentId.HasValue)
             {
                 var parent = await _repository.GetByIdAsync(parentId.Value);

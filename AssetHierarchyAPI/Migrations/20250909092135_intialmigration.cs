@@ -1,11 +1,12 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace AssetHierarchyAPI.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class intialmigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -30,12 +31,30 @@ namespace AssetHierarchyAPI.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Assetslogs",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Username = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Role = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Action = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    TargetName = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    TimeStamp = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Assetslogs", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Users",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Username = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    UserEmail = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Password = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Role = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
@@ -68,8 +87,8 @@ namespace AssetHierarchyAPI.Migrations
 
             migrationBuilder.InsertData(
                 table: "Users",
-                columns: new[] { "Id", "Password", "Role", "Username" },
-                values: new object[] { 1, "6G94qKPK8LYNjnTllCqm2G3BUM08AzOK7yW30tfjrMc=", "Admin", "admin" });
+                columns: new[] { "Id", "Password", "Role", "UserEmail", "Username" },
+                values: new object[] { 1, "6G94qKPK8LYNjnTllCqm2G3BUM08AzOK7yW30tfjrMc=", "Admin", "admin123@gmail.com", "admin" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_AssetNodes_ParentId",
@@ -91,6 +110,9 @@ namespace AssetHierarchyAPI.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "Assetslogs");
+
             migrationBuilder.DropTable(
                 name: "Signals");
 

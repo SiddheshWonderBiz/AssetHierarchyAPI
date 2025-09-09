@@ -122,6 +122,10 @@ namespace AssetHierarchyAPI.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("UserEmail")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Username")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
@@ -139,6 +143,7 @@ namespace AssetHierarchyAPI.Migrations
                             Id = 1,
                             Password = "6G94qKPK8LYNjnTllCqm2G3BUM08AzOK7yW30tfjrMc=",
                             Role = "Admin",
+                            UserEmail = "admin123@gmail.com",
                             Username = "admin"
                         });
                 });

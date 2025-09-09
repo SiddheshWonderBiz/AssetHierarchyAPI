@@ -57,7 +57,7 @@ namespace AssetHierarchyAPI.Services
 
             if (string.IsNullOrWhiteSpace(dto.ValueType))
                 throw new ArgumentException("ValueType cannot be empty");
-            string pattern = @"^[a-zA-Z0-9_-]+$";
+            string pattern = @"^[a-zA-Z0-9_\-\s]+$";
             bool isvalid = Regex.IsMatch(dto.Name, pattern);
             if (!isvalid) {
                 throw new ArgumentException("Invalid name pattern allowed only a-z,1-9 and -_");
@@ -106,7 +106,7 @@ namespace AssetHierarchyAPI.Services
 
             if (string.IsNullOrWhiteSpace(dto.ValueType))
                 throw new ArgumentException("Signal value type is required.");
-            string pattern = @"^[a-zA-Z0-9_-]+$";
+            string pattern = @"^[a-zA-Z0-9_\-\s]+$";
             bool isvalid = Regex.IsMatch(dto.Name, pattern);
             if (!isvalid)
             {

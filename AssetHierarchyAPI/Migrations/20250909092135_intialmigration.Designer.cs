@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AssetHierarchyAPI.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250905090448_logsmigration")]
-    partial class logsmigration
+    [Migration("20250909092135_intialmigration")]
+    partial class intialmigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -46,9 +46,6 @@ namespace AssetHierarchyAPI.Migrations
 
                     b.Property<DateTime>("TimeStamp")
                         .HasColumnType("datetime2");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
 
                     b.Property<string>("Username")
                         .IsRequired()
@@ -128,6 +125,10 @@ namespace AssetHierarchyAPI.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("UserEmail")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Username")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
@@ -145,6 +146,7 @@ namespace AssetHierarchyAPI.Migrations
                             Id = 1,
                             Password = "6G94qKPK8LYNjnTllCqm2G3BUM08AzOK7yW30tfjrMc=",
                             Role = "Admin",
+                            UserEmail = "admin123@gmail.com",
                             Username = "admin"
                         });
                 });
