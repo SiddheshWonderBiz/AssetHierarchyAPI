@@ -77,7 +77,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                if (!string.IsNullOrEmpty(accessToken) &&
                     path.StartsWithSegments("/notificationHub"))
                {
-                   // Read the token from query string
+                   // Reading token from query string
                    context.Token = accessToken;
                }
 

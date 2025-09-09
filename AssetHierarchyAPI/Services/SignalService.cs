@@ -68,8 +68,8 @@ namespace AssetHierarchyAPI.Services
                     $"Invalid value type '{dto.ValueType}'. Allowed: {string.Join(", ", allowed)}"
                 );
 
-            var assetExists = await _context.AssetNodes.AnyAsync(a => a.Id == assetId);
-            if (!assetExists)
+            var asset= await _context.AssetNodes.FirstOrDefaultAsync(a => a.Id == assetId);
+            if (asset == null)
                 throw new InvalidOperationException($"Asset with id {assetId} not found.");
 
             if (await DuplicateSignalAsync(dto, assetId))
@@ -87,7 +87,7 @@ namespace AssetHierarchyAPI.Services
             await _context.SaveChangesAsync();
 
             await _loggerdb.LogsActionsAsync("Signal added", signal.Name);
-           await _hubContext.Clients.All.SendAsync("signalAdded", signal.Name);
+           await _hubContext.Clients.All.SendAsync("signalAdded", $"Signal {signal.Name} addded under {asset.Name}");
 
             return signal;
         }

@@ -88,7 +88,7 @@ namespace AssetHierarchyAPI.Services
                 }
             }
         }
-
+        
         private void BuildTree(AssetNode parent, List<AssetNode> allNodes)
         {
             var children = allNodes.Where(n => n.ParentId == parent.Id).ToList();
@@ -112,8 +112,8 @@ namespace AssetHierarchyAPI.Services
                 throw new ArgumentException("Invalid name pattern allowed only a-z,1-9 and -_");
             }
 
-            var parentExists = await _repository.ExistsAsync(parentId);
-            if (!parentExists)
+            var parent = await _repository.GetByIdAsync(parentId);
+            if (parent == null)
             {
                 _logger.LogError($"Parent with ID {parentId} does not exist.");
                 throw new KeyNotFoundException($"Parent with ID {parentId} does not exist.");
@@ -137,7 +137,7 @@ namespace AssetHierarchyAPI.Services
             await _repository.SaveChangesAsync();
 
             await _loggerDb.LogsActionsAsync("Add Node", newNode.Name);
-            await _hubContext.Clients.All.SendAsync("nodeAdded", newNode.Name);
+            await _hubContext.Clients.All.SendAsync("nodeAdded", $"New node {newNode.Name} added under parent {parent.Name}");
 
         }
 
@@ -309,5 +309,47 @@ namespace AssetHierarchyAPI.Services
                 throw;
             }
         }
+
+        //Reorrder 
+        public async Task<string> ReorderNode(int Id , int ? newparentId)
+        {
+            
+                var node = await _repository.GetByIdAsync(Id);
+                if(node == null)
+                {
+                    throw new ArgumentException($"node with {Id} doesnt exist");
+                }
+
+                if (newparentId == Id)
+                {
+                    throw new ArgumentException($"A node cannot be its own parent");
+                }
+
+                if (newparentId != 1 && newparentId != null) {
+                    var newparent = await _repository.GetByIdAsync(newparentId.Value);
+                    if (newparent == null) {
+                        throw new ArgumentException("New parent with ID {newParentId} does not exist");
+                    }
+                    // Check circular reference
+                    if (await IsDescendant(Id, newparentId.Value))
+                        throw new InvalidOperationException( "Invalid move: cannot assign descendant as parent.");
+                }
+                
+                node.ParentId = (newparentId == null || newparentId == 1) ? 1 : newparentId;
+
+                await _repository.SaveChangesAsync();
+                await _loggerDb.LogsActionsAsync("Reorder node", node.Name);
+                return "Reoreder the node ";
+            
+           
+
+        }
+        private async Task<bool> IsDescendant(int nodeId, int potentialParentId)
+        {
+            var allNodes = await _repository.GetAllAsync();
+            var descendants = GetAllDescendantIds(nodeId, allNodes);
+            return descendants.Contains(potentialParentId);
+        }
+
     }
 }

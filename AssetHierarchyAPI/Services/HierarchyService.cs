@@ -342,5 +342,13 @@ namespace AssetHierarchyAPI.Services
                 AssignIds(child, ref currentId); 
             }
         }
+
+        //Reorder node 
+
+        public Task<string> ReorderNode(int id, int? newparentId)
+        {
+            throw new InvalidOperationException("Not implemeted for file type ");
+        }
+
     }
 }

@@ -15,6 +15,7 @@ namespace AssetHierarchyAPI.Interfaces
         Task AddHierarchy(AssetNode node);
         Task ReplaceTree(AssetNode node);
 
+        Task<string> ReorderNode(int id, int? newparentId);
         void ValidateNode(JsonElement element);
     }
 }

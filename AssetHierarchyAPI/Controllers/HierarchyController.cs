@@ -1,6 +1,7 @@
 ﻿using AssetHierarchyAPI.Data;
 using AssetHierarchyAPI.Interfaces;
 using AssetHierarchyAPI.Models;
+using AssetHierarchyAPI.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -80,7 +81,29 @@ namespace AssetHierarchyAPI.Controllers
             }
         }
 
-       
+        [HttpPost("reorder")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> ReorderNode([FromBody] ReorderRequest request)
+        {
+            try
+            {
+                var result = await _service.ReorderNode(request.NodeId, request.NewParentId);
+                return Ok(new { message = result });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = "Unexpected error occurred: " + ex.Message });
+            }
+        }
+
         [HttpPost("add")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> AddNode(int parentId, [FromBody] AssetNode newNode)
@@ -287,5 +310,11 @@ namespace AssetHierarchyAPI.Controllers
                 return StatusCode(500, new { error = "Unexpected error occurred: " + ex.Message });
             }
         }
+    }
+
+    public class ReorderRequest
+    {
+        public int NodeId { get; set; }
+        public int? NewParentId { get; set; } // 1 for root
     }
 }
