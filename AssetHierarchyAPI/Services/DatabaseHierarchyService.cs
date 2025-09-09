@@ -231,7 +231,7 @@ namespace AssetHierarchyAPI.Services
                 await _repository.AddAsync(root);
                 await _repository.SaveChangesAsync();
             }
-            string pattern = @"^[a-zA-Z0-9_-]+$";
+            string pattern = @"^[a-zA-Z0-9_\-\s]+$";
             bool isvalid = Regex.IsMatch(node.Name, pattern);
             if (!isvalid)
             {
