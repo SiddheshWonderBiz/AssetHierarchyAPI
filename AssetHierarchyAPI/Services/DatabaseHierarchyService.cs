@@ -5,6 +5,7 @@ using AssetHierarchyAPI.Models;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace AssetHierarchyAPI.Services
 {
@@ -104,6 +105,12 @@ namespace AssetHierarchyAPI.Services
         {
             if (string.IsNullOrWhiteSpace(newNode.Name))
                 throw new ArgumentException("Node name cannot be empty.");
+            string pattern = @"^[a-zA-Z0-9_-]+$";
+            bool isvalid = Regex.IsMatch(newNode.Name, pattern);
+            if (!isvalid)
+            {
+                throw new ArgumentException("Invalid name pattern allowed only a-z,1-9 and -_");
+            }
 
             var parentExists = await _repository.ExistsAsync(parentId);
             if (!parentExists)
@@ -139,6 +146,13 @@ namespace AssetHierarchyAPI.Services
         {
             var node = await _repository.GetByIdAsync(id);
             if (node == null) return false;
+
+            string pattern = @"^[a-zA-Z0-9_-]+$";
+            bool isvalid = Regex.IsMatch(newName, pattern);
+            if (!isvalid)
+            {
+                throw new ArgumentException("Invalid name pattern allowed only a-z,1-9 and -_");
+            }
 
             var nodeExists = (await _repository.GetAllAsync()).Any(n => n.Name == newName && n.Id != id);
             if (nodeExists)

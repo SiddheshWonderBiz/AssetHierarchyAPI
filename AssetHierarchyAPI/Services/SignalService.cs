@@ -5,6 +5,7 @@ using AssetHierarchyAPI.Interfaces;
 using AssetHierarchyAPI.Models;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using System.Text.RegularExpressions;
 
 namespace AssetHierarchyAPI.Services
 {
@@ -56,6 +57,11 @@ namespace AssetHierarchyAPI.Services
 
             if (string.IsNullOrWhiteSpace(dto.ValueType))
                 throw new ArgumentException("ValueType cannot be empty");
+            string pattern = @"^[a-zA-Z0-9_-]+$";
+            bool isvalid = Regex.IsMatch(dto.Name, pattern);
+            if (!isvalid) {
+                throw new ArgumentException("Invalid name pattern allowed only a-z,1-9 and -_");
+            }
 
             if (!allowed.Contains(dto.ValueType))
                 throw new ArgumentException(
@@ -100,6 +106,12 @@ namespace AssetHierarchyAPI.Services
 
             if (string.IsNullOrWhiteSpace(dto.ValueType))
                 throw new ArgumentException("Signal value type is required.");
+            string pattern = @"^[a-zA-Z0-9_-]+$";
+            bool isvalid = Regex.IsMatch(dto.Name, pattern);
+            if (!isvalid)
+            {
+                throw new ArgumentException("Invalid name pattern allowed only a-z,1-9 and -_");
+            }
 
             if (!allowed.Contains(dto.ValueType))
                 throw new ArgumentException(

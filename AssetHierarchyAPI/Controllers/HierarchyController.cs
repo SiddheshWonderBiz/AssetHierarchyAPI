@@ -122,13 +122,13 @@ namespace AssetHierarchyAPI.Controllers
 
                 return Ok($"Node {id} updated to '{newName}' successfully.");
             }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(ex.Message);
-            }
             catch (InvalidOperationException ex)
             {
-                return Conflict(ex.Message);
+                return BadRequest(new { error = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = "Unexpected error occurred: " + ex.Message });
             }
         }
 
