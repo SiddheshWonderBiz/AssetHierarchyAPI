@@ -335,7 +335,7 @@ namespace AssetHierarchyAPI.Services
                         throw new InvalidOperationException( "Invalid move: cannot assign descendant as parent.");
                 }
                 
-                node.ParentId = (newparentId == null || newparentId == 1) ? 1 : newparentId;
+                //node.ParentId = (newparentId == null || newparentId == 1) ? 1 : newparentId;
 
                 await _repository.SaveChangesAsync();
                 await _loggerDb.LogsActionsAsync("Reorder node", node.Name);

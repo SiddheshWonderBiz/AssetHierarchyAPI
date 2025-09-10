@@ -9,6 +9,7 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
+using Microsoft.AspNetCore.Authorization;
 
 namespace AssetHierarchyAPI.Controllers
 {
@@ -58,13 +59,12 @@ namespace AssetHierarchyAPI.Controllers
                 return BadRequest(new { message = "Invalid email format" });
             }
 
-            // Check if username  or email already exists
+            // Check if username or email already exists
             if (await _context.Users.AnyAsync(u => u.Username == model.Username))
                 return BadRequest(new { message = "Username already exists" });
 
             if (await _context.Users.AnyAsync(u => u.UserEmail == model.UserEmail))
                 return BadRequest(new { message = "Email already exists" });
-
 
             // Hash password
             var passwordHash = Convert.ToBase64String(
@@ -84,26 +84,84 @@ namespace AssetHierarchyAPI.Controllers
 
             return Ok(new { message = "User registered successfully" });
         }
+
         [HttpPost("login")]
         public async Task<ActionResult> Login([FromBody] LoginModel model)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(u => ( u.Username == model.Username || u.UserEmail == model.UserEmail));
-            if (user == null) return BadRequest(new { message = "User does not exist" });
+            var user = await _context.Users.FirstOrDefaultAsync(u => 
+                u.Username == model.Username || u.UserEmail == model.UserEmail);
+            
+            if (user == null) 
+                return BadRequest(new { message = "User does not exist" });
 
             var passwordHash = Convert.ToBase64String(
                 SHA256.HashData(Encoding.UTF8.GetBytes(model.Password))
             );
 
-            if (user.Password != passwordHash) return Unauthorized(new { message = "Invalid password" });
+            if (user.Password != passwordHash) 
+                return Unauthorized(new { message = "Invalid password" });
 
             var token = GenerateToken(user);
 
+            // Set cookie with proper settings
+            Response.Cookies.Append("AuthToken", token, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true, 
+                SameSite = SameSiteMode.None,
+                Expires = DateTimeOffset.UtcNow.AddHours(1),
+                Path = "/" // Ensure cookie is available for all paths
+            });
+
             return Ok(new
             {
-                token,
-                role = user.Role,
-                username = user.Username
+                message = "Login successful",
+                user = new
+                {
+                    username = user.Username,
+                    email = user.UserEmail,
+                    role = user.Role
+                }
             });
+        }
+
+        [HttpPost("logout")]
+        public IActionResult Logout()
+        {
+            Response.Cookies.Delete("AuthToken", new CookieOptions
+            {
+                Path = "/",
+                SameSite = SameSiteMode.Lax
+            });
+            return Ok(new { message = "Logged out" });
+        }
+
+        [HttpGet("me")]
+        [Authorize] // Add authorization attribute
+        public async Task<IActionResult> GetCurrentUser()
+        {
+            try
+            {
+                // Get username from claims
+                var username = User.Identity?.Name;
+                var email = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
+                var role = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
+
+
+                return Ok(new
+                {
+                    //isAuthenticated = User.Identity?.IsAuthenticated,
+                    //claims = User.Claims.Select(c => new { c.Type, c.Value })
+                    username,
+                    email,
+                    role
+                });
+
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Error retrieving user information", error = ex.Message });
+            }
         }
 
         private string GenerateToken(User user)
@@ -114,15 +172,17 @@ namespace AssetHierarchyAPI.Controllers
             var claims = new[]
             {
                 new Claim(ClaimTypes.Name, user.Username),
-                new Claim(ClaimTypes.Email , user.UserEmail),
-                new Claim(ClaimTypes.Role, user.Role)
+                new Claim(ClaimTypes.Email, user.UserEmail),
+                new Claim(ClaimTypes.Role, user.Role),
+                new Claim(JwtRegisteredClaimNames.Sub, user.Username),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
 
             var token = new JwtSecurityToken(
                 issuer: _config["Jwt:Issuer"],
                 audience: _config["Jwt:Audience"],
                 claims: claims,
-                expires: DateTime.Now.AddHours(1),
+                expires: DateTime.UtcNow.AddHours(1), // Changed to UtcNow
                 signingCredentials: creds
             );
 
@@ -132,7 +192,6 @@ namespace AssetHierarchyAPI.Controllers
         public class RegisterModel
         {
             public string Username { get; set; }
-
             public string UserEmail { get; set; }
             public string Password { get; set; }
             public string Role { get; set; } = "Viewer";
@@ -141,9 +200,7 @@ namespace AssetHierarchyAPI.Controllers
         public class LoginModel
         {
             public string Username { get; set; }
-
             public string UserEmail { get; set; }
-
             public string Password { get; set; }
         }
     }

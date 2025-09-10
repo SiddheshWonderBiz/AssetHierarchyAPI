@@ -31,9 +31,7 @@ builder.Services.AddCors(options =>
         policy.WithOrigins("http://localhost:5173")
               .AllowAnyHeader()
               .AllowAnyMethod()
-              .AllowCredentials()
-              .WithExposedHeaders("*");
-
+              .AllowCredentials();
     });
 });
 
@@ -63,32 +61,47 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             IssuerSigningKey = new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)
             ),
-            RoleClaimType = ClaimTypes.Role, 
-            NameClaimType = ClaimTypes.Name
+            RoleClaimType = ClaimTypes.Role,
+            NameClaimType = ClaimTypes.Name,
+            ClockSkew = TimeSpan.Zero // Remove default 5 minute tolerance
         };
+        
         options.Events = new JwtBearerEvents
         {
-           OnMessageReceived = context =>
-           {
-               var accessToken = context.Request.Query["access_token"];
+            OnMessageReceived = context =>
+            {
+                // Check cookie first
+                if (context.Request.Cookies.ContainsKey("AuthToken"))
+                {
+                    context.Token = context.Request.Cookies["AuthToken"];
+                }
+                // Fallback: SignalR query string
+                else if (!string.IsNullOrEmpty(context.Request.Query["access_token"]) &&
+                         context.HttpContext.Request.Path.StartsWithSegments("/notificationHub"))
+                {
+                    context.Token = context.Request.Query["access_token"];
+                }
 
-               // If the request is for our hub...
-               var path = context.HttpContext.Request.Path;
-               if (!string.IsNullOrEmpty(accessToken) &&
-                    path.StartsWithSegments("/notificationHub"))
-               {
-                   // Reading token from query string
-                   context.Token = accessToken;
-               }
-
-               return Task.CompletedTask;
-           }
+                return Task.CompletedTask;
+            },
+            OnAuthenticationFailed = context =>
+            {
+                // Log authentication failures for debugging
+                Console.WriteLine($"Authentication failed: {context.Exception.Message}");
+                return Task.CompletedTask;
+            },
+            OnTokenValidated = context =>
+            {
+                // Log successful token validation
+                var username = context.Principal?.Identity?.Name;
+                Console.WriteLine($"Token validated for user: {username}");
+                return Task.CompletedTask;
+            }
         };
     });
 
 builder.Services.AddAuthorization();
 builder.Services.AddSignalR();
-
 
 var app = builder.Build();
 
@@ -96,10 +109,9 @@ app.UseMiddleware<ErrorHandlingMiddleware>();
 app.UseHttpsRedirection();
 app.UseCors("AllowFrontend");
 
+// Authentication must come before authorization
 app.UseAuthentication();
 app.UseAuthorization();
-
-
 
 if (app.Environment.IsDevelopment())
 {
@@ -110,6 +122,5 @@ if (app.Environment.IsDevelopment())
 app.UseSerilogUi();
 app.MapControllers();
 app.MapHub<NotificationHub>("/notificationHub");
-
 
 app.Run();
