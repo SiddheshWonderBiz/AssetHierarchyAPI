@@ -10,6 +10,9 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Google;
 
 namespace AssetHierarchyAPI.Controllers
 {
@@ -124,6 +127,68 @@ namespace AssetHierarchyAPI.Controllers
                 }
             });
         }
+
+        [HttpGet("google-login")]
+        public IActionResult GoogleLogin()
+        {
+            var props = new AuthenticationProperties
+            {
+                RedirectUri = Url.Action("GoogleResponse") // This should point to google-callback
+            };
+            return Challenge(props, GoogleDefaults.AuthenticationScheme);
+        }
+
+        [HttpGet("google-callback")] // ✅ This matches your Google config
+        public async Task<IActionResult> GoogleResponse()
+        {
+            var result = await HttpContext.AuthenticateAsync(GoogleDefaults.AuthenticationScheme);
+            if (!result.Succeeded)
+            {
+                return Redirect("http://localhost:5173/login?error=auth_failed");
+            }
+
+            var email = result.Principal.FindFirst(c => c.Type == ClaimTypes.Email)?.Value;
+            var name = result.Principal.Identity?.Name ?? email?.Split('@')[0];
+
+            if (email == null)
+            {
+                return Redirect("http://localhost:5173/login?error=no_email");
+            }
+
+            // Find or create user
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.UserEmail == email);
+            if (user == null)
+            {
+                user = new User
+                {
+                    Username = name,
+                    UserEmail = email,
+                    Role = "Viewer"
+                };
+                _context.Users.Add(user);
+                await _context.SaveChangesAsync();
+            }
+
+            // Generate JWT token
+            var token = GenerateToken(user);
+
+            // Store JWT in HttpOnly cookie
+            Response.Cookies.Append("AuthToken", token, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = false,
+                SameSite = SameSiteMode.Lax,
+                Expires = DateTimeOffset.UtcNow.AddHours(1),
+                Path = "/"
+            });
+
+            await HttpContext.SignOutAsync(GoogleDefaults.AuthenticationScheme);
+
+            // Redirect to a success page that will fetch user info
+            return Redirect("http://localhost:5173/auth-success");
+        }
+
+
 
         [HttpPost("logout")]
         public IActionResult Logout()

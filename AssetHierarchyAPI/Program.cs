@@ -2,6 +2,8 @@
 using AssetHierarchyAPI.Extensions;
 using AssetHierarchyAPI.Hubs;
 using AssetHierarchyAPI.Middleware;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -46,59 +48,56 @@ builder.Services.AddStorageService(builder.Configuration);
 
 // Serilog UI
 builder.Services.AddSerilogUi(_ => { });
-
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme; // ✅ important
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
     {
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = builder.Configuration["Jwt:Issuer"],
-            ValidAudience = builder.Configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)
-            ),
-            RoleClaimType = ClaimTypes.Role,
-            NameClaimType = ClaimTypes.Name,
-            ClockSkew = TimeSpan.Zero // Remove default 5 minute tolerance
-        };
-        
-        options.Events = new JwtBearerEvents
-        {
-            OnMessageReceived = context =>
-            {
-                // Check cookie first
-                if (context.Request.Cookies.ContainsKey("AuthToken"))
-                {
-                    context.Token = context.Request.Cookies["AuthToken"];
-                }
-                // Fallback: SignalR query string
-                else if (!string.IsNullOrEmpty(context.Request.Query["access_token"]) &&
-                         context.HttpContext.Request.Path.StartsWithSegments("/notificationHub"))
-                {
-                    context.Token = context.Request.Query["access_token"];
-                }
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+        ValidAudience = builder.Configuration["Jwt:Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)
+        ),
+        RoleClaimType = ClaimTypes.Role,
+        NameClaimType = ClaimTypes.Name,
+        ClockSkew = TimeSpan.Zero
+    };
 
-                return Task.CompletedTask;
-            },
-            OnAuthenticationFailed = context =>
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            if (context.Request.Cookies.ContainsKey("AuthToken"))
             {
-                // Log authentication failures for debugging
-                Console.WriteLine($"Authentication failed: {context.Exception.Message}");
-                return Task.CompletedTask;
-            },
-            OnTokenValidated = context =>
-            {
-                // Log successful token validation
-                var username = context.Principal?.Identity?.Name;
-                Console.WriteLine($"Token validated for user: {username}");
-                return Task.CompletedTask;
+                context.Token = context.Request.Cookies["AuthToken"];
             }
-        };
-    });
+            else if (!string.IsNullOrEmpty(context.Request.Query["access_token"]) &&
+                     context.HttpContext.Request.Path.StartsWithSegments("/notificationHub"))
+            {
+                context.Token = context.Request.Query["access_token"];
+            }
+
+            return Task.CompletedTask;
+        },
+    };
+})
+.AddCookie(CookieAuthenticationDefaults.AuthenticationScheme) // must exist
+.AddGoogle(GoogleDefaults.AuthenticationScheme, options =>
+{
+    options.ClientId = builder.Configuration["Authentication:Google:ClientId"]!;
+    options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"]!;
+    options.CallbackPath = "/api/Auth/google-callback";
+});
+
 
 builder.Services.AddAuthorization();
 builder.Services.AddSignalR();
