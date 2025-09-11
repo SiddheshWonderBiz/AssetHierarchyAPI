@@ -57,6 +57,17 @@ namespace AssetHierarchyAPI.Services
 
             if (string.IsNullOrWhiteSpace(dto.ValueType))
                 throw new ArgumentException("ValueType cannot be empty");
+
+            if(dto.Name.Length > 50)
+            {
+                throw new ArgumentException("Name cant't be greater than 50 char");
+            }
+            if(dto.Description.Length > 300)
+            {
+                throw new ArgumentException("Description cant't be greater than 300 char");
+
+            }
+
             string pattern = @"^[a-zA-Z0-9_\-\s]+$";
             bool isvalid = Regex.IsMatch(dto.Name, pattern);
             if (!isvalid) {

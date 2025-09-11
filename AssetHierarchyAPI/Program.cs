@@ -14,11 +14,6 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-//if (builder.Environment.IsDevelopment())
-//{
-//    builder.Configuration.AddUserSecrets<Program>();
-//}
-
 // Logging
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -101,6 +96,13 @@ builder.Services.AddAuthentication(options =>
     options.ClientId = builder.Configuration["Authentication:Google:ClientId"]!;
     options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"]!;
     options.CallbackPath = "/google-callback";
+})
+.AddGitHub(options =>
+{
+    options.ClientId = builder.Configuration["Authentication:GitHub:ClientId"]!;
+    options.ClientSecret = builder.Configuration["Authentication:GitHub:ClientSecret"]!;
+    options.CallbackPath = "/github-callback";
+    options.Scope.Add("user:email"); // to ensure email is returned
 });
 
 

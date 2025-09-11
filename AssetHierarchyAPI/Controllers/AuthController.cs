@@ -188,7 +188,56 @@ namespace AssetHierarchyAPI.Controllers
             return Redirect("http://localhost:5173/auth-success");
         }
 
+        [HttpGet("github-login")]
+        public IActionResult Githublogin()
+        {
+            var props = new AuthenticationProperties
+            {
+                RedirectUri = Url.Action("GithubResponse")
+            };
+            return Challenge(props, "GitHub");
+        }
+        [HttpGet("github-callback")]
+        public async Task<IActionResult> GithubResponse()
+        {
+            var res = await HttpContext.AuthenticateAsync("GitHub");
+            if(!res.Succeeded)
+                return Redirect("http://localhost:5173/login?error=auth_failed");
 
+            var email = res.Principal.FindFirst(c => c.Type == ClaimTypes.Email)?.Value;
+            var name = res.Principal.Identity?.Name ?? email?.Split('@')[0];
+
+            if (email == null)
+            {
+                email = res.Principal.FindFirst(c => c.Type == ClaimTypes.Name)?.Value + "@github.com";
+            }
+            var user =  await _context.Users.FirstOrDefaultAsync(c => c.UserEmail == email);
+            if (user == null) {
+                user = new User
+                {
+                    Username = name,
+                    UserEmail = email,
+                    Role = "Viewer",
+                   
+                };
+                _context.Users.Add(user);
+                await _context.SaveChangesAsync();
+            }
+            var token = GenerateToken(user);
+
+            Response.Cookies.Append("AuthToken", token, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.None,
+                Expires = DateTimeOffset.UtcNow.AddHours(1),
+                Path = "/"
+            });
+
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            return Redirect("http://localhost:5173/auth-success");
+
+        }
 
 
         [HttpPost("logout")]
