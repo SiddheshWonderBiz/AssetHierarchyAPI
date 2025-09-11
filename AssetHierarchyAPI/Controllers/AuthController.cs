@@ -138,10 +138,10 @@ namespace AssetHierarchyAPI.Controllers
             return Challenge(props, GoogleDefaults.AuthenticationScheme);
         }
 
-        [HttpGet("google-callback")] // ✅ This matches your Google config
+        [HttpGet("google-callback")]
         public async Task<IActionResult> GoogleResponse()
         {
-            var result = await HttpContext.AuthenticateAsync(GoogleDefaults.AuthenticationScheme);
+            var result = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             if (!result.Succeeded)
             {
                 return Redirect("http://localhost:5173/login?error=auth_failed");
@@ -176,17 +176,18 @@ namespace AssetHierarchyAPI.Controllers
             Response.Cookies.Append("AuthToken", token, new CookieOptions
             {
                 HttpOnly = true,
-                Secure = false,
-                SameSite = SameSiteMode.Lax,
+                Secure = true,
+                SameSite = SameSiteMode.None,
                 Expires = DateTimeOffset.UtcNow.AddHours(1),
                 Path = "/"
             });
 
-            await HttpContext.SignOutAsync(GoogleDefaults.AuthenticationScheme);
+            // ✅ Clear the temporary external cookie
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
 
-            // Redirect to a success page that will fetch user info
             return Redirect("http://localhost:5173/auth-success");
         }
+
 
 
 
