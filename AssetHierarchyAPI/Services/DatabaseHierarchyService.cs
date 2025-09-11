@@ -311,39 +311,46 @@ namespace AssetHierarchyAPI.Services
         }
 
         //Reorrder 
-        public async Task<string> ReorderNode(int Id , int ? newparentId)
+        public async Task<string> ReorderNode(int Id, int? newparentId)
         {
-            
-                var node = await _repository.GetByIdAsync(Id);
-                if(node == null)
+            var node = await _repository.GetByIdAsync(Id);
+            if (node == null)
+            {
+                throw new ArgumentException($"Node with ID {Id} doesn't exist");
+            }
+
+            if (newparentId == Id)
+            {
+                throw new ArgumentException("A node cannot be its own parent");
+            }
+
+            if (newparentId != 1 && newparentId != null)
+            {
+                var newParent = await _repository.GetByIdAsync(newparentId.Value);
+                if (newParent == null)
                 {
-                    throw new ArgumentException($"node with {Id} doesnt exist");
+                    throw new ArgumentException($"New parent with ID {newparentId} does not exist");
                 }
 
-                if (newparentId == Id)
+                // Check circular reference
+                if (await IsDescendant(Id, newparentId.Value))
+                    throw new InvalidOperationException("Invalid move: cannot assign descendant as parent.");
+
+                // ------------------ Check for duplicate name ------------------
+                var siblings = await _repository.GetAllAsync();
+                var childrenOfNewParent = siblings.Where(n => n.ParentId == newparentId.Value);
+                if (childrenOfNewParent.Any(c => c.Name.Equals(node.Name, StringComparison.OrdinalIgnoreCase)))
                 {
-                    throw new ArgumentException($"A node cannot be its own parent");
+                    throw new InvalidOperationException($"Cannot move node '{node.Name}' under parent '{newParent.Name}' because a child with the same name already exists.");
                 }
+            }
 
-                if (newparentId != 1 && newparentId != null) {
-                    var newparent = await _repository.GetByIdAsync(newparentId.Value);
-                    if (newparent == null) {
-                        throw new ArgumentException("New parent with ID {newParentId} does not exist");
-                    }
-                    // Check circular reference
-                    if (await IsDescendant(Id, newparentId.Value))
-                        throw new InvalidOperationException( "Invalid move: cannot assign descendant as parent.");
-                }
-                
-                //node.ParentId = (newparentId == null || newparentId == 1) ? 1 : newparentId;
-
-                await _repository.SaveChangesAsync();
-                await _loggerDb.LogsActionsAsync("Reorder node", node.Name);
-                return "Reoreder the node ";
-            
-           
-
+            node.ParentId = (newparentId == null || newparentId == 1) ? 1 : newparentId;
+            await _repository.SaveChangesAsync();
+            await _loggerDb.LogsActionsAsync("Reorder node", node.Name);
+            return "Reordered the node successfully";
         }
+
         private async Task<bool> IsDescendant(int nodeId, int potentialParentId)
         {
             var allNodes = await _repository.GetAllAsync();
