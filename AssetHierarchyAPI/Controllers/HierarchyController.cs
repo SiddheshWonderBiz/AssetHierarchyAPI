@@ -181,10 +181,16 @@ namespace AssetHierarchyAPI.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> UploadFile(IFormFile file)
         {
-            if (file == null || file.Length == 0)
+            if (file == null )
             {
-                return BadRequest(new { error = "File is invalid or empty" });
+                return BadRequest(new { error = "File is invalid" });
             }
+            if(file.Length == 0)
+            {
+                return BadRequest(new { error = "File is empty" });
+
+            }
+
 
             try
             {

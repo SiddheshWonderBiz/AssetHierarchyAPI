@@ -1,4 +1,6 @@
-﻿namespace AssetHierarchyAPI.Models
+﻿using Microsoft.VisualBasic;
+
+namespace AssetHierarchyAPI.Models
 {
     public class User
     {
@@ -10,6 +12,9 @@
         public string UserEmail { get; set; }
         public string? Password { get; set; }
         public string Role { get; set; } = "Viewer";
+
+
+       
 
     }
 }

@@ -211,7 +211,7 @@ namespace AssetHierarchyAPI.Services
         public async Task<int> CountNodes()
         {
             var nodes = await _repository.GetAllAsync();
-            return nodes.Count;
+            return nodes.Count -1;
         }
 
         // Add complete hierarchy
