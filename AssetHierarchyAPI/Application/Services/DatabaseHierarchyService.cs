@@ -1,5 +1,4 @@
-﻿using AssetHierarchyAPI.Data;
-using AssetHierarchyAPI.Domain.Interfaces;
+﻿using AssetHierarchyAPI.Domain.Interfaces;
 using AssetHierarchyAPI.Domain.Models;
 using AssetHierarchyAPI.Infrastructure.Hubs;
 using Microsoft.AspNetCore.SignalR;

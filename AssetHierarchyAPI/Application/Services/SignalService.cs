@@ -25,7 +25,7 @@ namespace AssetHierarchyAPI.Application.Services
             _hubContext = hubContext;
         }
 
-        public async Task<IEnumerable<Signals>> GetByAssetAsync(int assetId)
+        public async Task<IEnumerable<Signal>> GetByAssetAsync(int assetId)
         {
             return await _context.Signals
                 .AsNoTracking()
@@ -34,7 +34,7 @@ namespace AssetHierarchyAPI.Application.Services
                 .ToListAsync();
         }
 
-        public async Task<Signals?> GetByIdAsync(int id)
+        public async Task<Signal?> GetByIdAsync(int id)
         {
             return await _context.Signals
                 .AsNoTracking()
@@ -47,7 +47,7 @@ namespace AssetHierarchyAPI.Application.Services
                 .AnyAsync(s => s.AssetId == assetId && s.Name.ToLower() == dto.Name.ToLower());
         }
 
-        public async Task<Signals> AddSignalAsync(int assetId, GlobalSignalDTO dto)
+        public async Task<Signal> AddSignalAsync(int assetId, GlobalSignalDTO dto)
         {
             if (dto == null)
                 throw new ArgumentNullException(nameof(dto), "Signal cannot be null");
@@ -86,7 +86,7 @@ namespace AssetHierarchyAPI.Application.Services
             if (await DuplicateSignalAsync(dto, assetId))
                 throw new InvalidOperationException($"Signal '{dto.Name}' already exists for this asset.");
 
-            var signal = new Signals
+            var signal = new Signal
             {
                 Name = dto.Name,
                 ValueType = dto.ValueType,

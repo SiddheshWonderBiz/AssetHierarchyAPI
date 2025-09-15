@@ -19,7 +19,7 @@ namespace AssetHierarchyAPI.Presentation.Controllers
 
         // GET all signals for an asset
         [HttpGet("asset/{assetId}")]
-        public async Task<ActionResult<IEnumerable<Signals>>> GetByAssetAsync(int assetId)
+        public async Task<ActionResult<IEnumerable<Signal>>> GetByAssetAsync(int assetId)
         {
             var signals = await _signals.GetByAssetAsync(assetId);
 
@@ -31,7 +31,7 @@ namespace AssetHierarchyAPI.Presentation.Controllers
 
         // GET a single signal by id
         [HttpGet("asset/{assetId}/signals/{id}")]
-        public async Task<ActionResult<Signals>> GetByIdAsync(int assetId, int id)
+        public async Task<ActionResult<Signal>> GetByIdAsync(int assetId, int id)
         {
             var sig = await _signals.GetByIdAsync(id);
             if (sig == null)

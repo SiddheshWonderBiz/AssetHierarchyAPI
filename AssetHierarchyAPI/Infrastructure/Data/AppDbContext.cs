@@ -10,7 +10,7 @@ namespace AssetHierarchyAPI.Infrastructure.Data
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
         {        }
         public DbSet<AssetNode> AssetNodes { get; set; }
-        public DbSet<Signals> Signals { get; set; }
+        public DbSet<Signal> Signals { get; set; }
 
         public DbSet<User> Users { get; set; }
 

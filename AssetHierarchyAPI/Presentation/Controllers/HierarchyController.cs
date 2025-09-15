@@ -1,7 +1,7 @@
 ﻿using AssetHierarchyAPI.Domain.Interfaces;
 using AssetHierarchyAPI.Domain.Models;
 using AssetHierarchyAPI.Infrastructure.Data;
-using AssetHierarchyAPI.Services;
+using AssetHierarchyAPI.Application.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -194,6 +194,13 @@ namespace AssetHierarchyAPI.Presentation.Controllers
 
             try
             {
+                var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+
+                if (extension != ".json" && extension != ".xml")
+                {
+                    return BadRequest(new { error = "Only .json or .xml files are allowed" });
+                }
+
                 using var sr = new StreamReader(file.OpenReadStream());
                 var data = await sr.ReadToEndAsync();
                 if (string.IsNullOrWhiteSpace(data))
@@ -202,17 +209,10 @@ namespace AssetHierarchyAPI.Presentation.Controllers
                 }
 
                 AssetNode newTree;
-                var storageType = _configuration["StorageType"] ?? "JSON";
 
-                if (storageType.Equals("XML", StringComparison.OrdinalIgnoreCase))
+                try
                 {
-                    var serializer = new XmlSerializer(typeof(AssetNode));
-                    using var reader = new StringReader(data);
-                    newTree = (AssetNode?)serializer.Deserialize(reader);
-                }
-                else
-                {
-                    // ✅ Strict JSON validation BEFORE deserialization
+                    // Try parsing as JSON
                     using var jsonDoc = JsonDocument.Parse(data);
                     _service.ValidateNode(jsonDoc.RootElement);
 
@@ -222,25 +222,37 @@ namespace AssetHierarchyAPI.Presentation.Controllers
                     };
                     newTree = JsonSerializer.Deserialize<AssetNode>(data, options);
                 }
+                catch (JsonException)
+                {
+                    try
+                    {
+                        // If JSON fails, try XML
+                        var serializer = new XmlSerializer(typeof(AssetNode));
+                        using var reader = new StringReader(data);
+                        newTree = (AssetNode?)serializer.Deserialize(reader);
+                    }
+                    catch (InvalidOperationException)
+                    {
+                        // Both JSON and XML failed → unsupported format
+                        return BadRequest(new { error = "Unsupported or invalid file format. Only JSON and XML are allowed." });
+                    }
+                }
 
                 if (newTree == null)
                 {
-                    return BadRequest(new { error = $"Invalid {storageType} file format" });
+                    return BadRequest(new { error = "Invalid hierarchy file structure" });
                 }
 
                 // Initialize children collection if null
                 InitializeChildren(newTree);
 
-                // For database storage, EF handles IDs
-                var dbStorageType = _configuration["StorageType"];
-                if (!dbStorageType.Equals("DB", StringComparison.OrdinalIgnoreCase))
-                {
-                    int idCounter = 1;
-                    _service.AssignIds(newTree, ref idCounter);
-                }
+                // Assign IDs only for non-database storage
+                int idCounter = 1;
+                _service.AssignIds(newTree, ref idCounter);
 
                 await _service.ReplaceTree(newTree);
                 return Ok(new { message = "Hierarchy updated successfully" });
+
 
             }
             catch (JsonException ex)

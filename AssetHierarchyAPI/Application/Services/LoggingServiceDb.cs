@@ -1,6 +1,6 @@
 ﻿using AssetHierarchyAPI.Domain.Interfaces;
 using AssetHierarchyAPI.Infrastructure.Data;
-using AssetHierarchyAPI.Models;
+using AssetHierarchyAPI.Domain.Models;
 using System.Security.Claims;
 
 namespace AssetHierarchyAPI.Application.Services

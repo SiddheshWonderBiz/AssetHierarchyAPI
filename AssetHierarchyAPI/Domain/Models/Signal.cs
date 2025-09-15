@@ -4,23 +4,22 @@ using System.Text.Json.Serialization;
 
 namespace AssetHierarchyAPI.Domain.Models
 {
-    public class Signals
+    public class Signal
     {
         [Key]
         public int Id { get; set; }
 
-        [Required]
-        [MaxLength(100)]
+        [Required, MaxLength(100)]
         public string Name { get; set; } = string.Empty;
 
         public int AssetId { get; set; }
 
-        [ForeignKey("AssetId")]
-        [JsonIgnore]
-        public AssetNode Asset { get; set; }
-        [Required]
-        public string ValueType { get; set; } 
-        public string? Description { get; set; }
+        [ForeignKey("AssetId"), JsonIgnore]
+        public AssetNode? Asset { get; set; }
 
+        [Required]
+        public string ValueType { get; set; } = string.Empty;
+
+        public string? Description { get; set; }
     }
 }
