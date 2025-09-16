@@ -1,43 +1,43 @@
-﻿using AssetHierarchyAPI.Infrastructure.Data;
+﻿using AssetHierarchyAPI.Application.Interfaces;
 using AssetHierarchyAPI.Domain.Models;
-using System.Security.Claims;
-using AssetHierarchyAPI.Application.Interfaces;
 using Microsoft.AspNetCore.Http;
+using System.Security.Claims;
+using System.Threading.Tasks;
 
 namespace AssetHierarchyAPI.Infrastructure.Services
 {
     public class LoggingServiceDb : ILoggingServiceDb
     {
-        private readonly AppDbContext _context;
+        private readonly IAssetLogRepository _logRepository;
         private readonly IHttpContextAccessor _contextAccessor;
 
-        public LoggingServiceDb(AppDbContext context, IHttpContextAccessor contextAccessor)
+        public LoggingServiceDb(IAssetLogRepository logRepository, IHttpContextAccessor contextAccessor)
         {
-            _context = context;
+            _logRepository = logRepository;
             _contextAccessor = contextAccessor;
         }
 
         public async Task LogsActionsAsync(string actionType, string? targetName = null)
         {
             var user = _contextAccessor.HttpContext?.User;
-            
+
             var username = user?.Identity?.Name ?? "Unknown";
             var role = user?.FindFirst(ClaimTypes.Role)?.Value ?? "Unknown";
+
             var log = new AssetLog
             {
-                
-                Username = username ,
-                Role = role ,
-                Action =    actionType ,
+                Username = username,
+                Role = role,
+                Action = actionType,
                 TargetName = targetName,
                 TimeStamp = TimeZoneInfo.ConvertTimeFromUtc(
-    DateTime.UtcNow,
-    TimeZoneInfo.FindSystemTimeZoneById("India Standard Time")
-)
+                    DateTime.UtcNow,
+                    TimeZoneInfo.FindSystemTimeZoneById("India Standard Time")
+                )
             };
-            await _context.AssetLogs.AddAsync(log);
-            await _context.SaveChangesAsync();
 
+            await _logRepository.AddAsync(log);
+            await _logRepository.SaveChangesAsync();
         }
     }
 }

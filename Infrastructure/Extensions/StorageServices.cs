@@ -26,6 +26,7 @@ namespace AssetHierarchyAPI.Infrastructure.Extensions
                     services.AddScoped<ISignalRepository, SignalRepository>();
                     services.AddScoped<ISignalServices, SignalService>(); // ✅ add this
                     services.AddScoped<IHierarchyService, DatabaseHierarchyService>();
+                    services.AddScoped<IAssetLogRepository, AssetLogRepository>();
                     services.AddScoped<ILoggingServiceDb, LoggingServiceDb>();
           
 

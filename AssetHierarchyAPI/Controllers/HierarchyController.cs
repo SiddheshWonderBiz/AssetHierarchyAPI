@@ -1,6 +1,9 @@
-﻿using AssetHierarchyAPI.Domain.Models;
-using AssetHierarchyAPI.Infrastructure.Data;
+﻿using AssetHierarchyAPI.Application.DTOs;
+using AssetHierarchyAPI.Application.Interfaces;
+using AssetHierarchyAPI.Application.Mapping;
 using AssetHierarchyAPI.Application.Services;
+using AssetHierarchyAPI.Domain.Models;
+using AssetHierarchyAPI.Infrastructure.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -8,7 +11,6 @@ using System.Globalization;
 using System.Text.Json;
 using System.Xml.Serialization;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
-using AssetHierarchyAPI.Application.Interfaces;
 
 
 namespace AssetHierarchyAPI.Controllers
@@ -178,19 +180,13 @@ namespace AssetHierarchyAPI.Controllers
 
 
         [HttpPost("upload")]
-        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> UploadFile(IFormFile file)
         {
-            if (file == null )
-            {
+            if (file == null)
                 return BadRequest(new { error = "File is invalid" });
-            }
-            if(file.Length == 0)
-            {
+
+            if (file.Length == 0)
                 return BadRequest(new { error = "File is empty" });
-
-            }
-
 
             try
             {
@@ -208,33 +204,42 @@ namespace AssetHierarchyAPI.Controllers
                     return BadRequest(new { error = "File content is empty" });
                 }
 
-                AssetNode newTree;
+                AssetNode? newTree = null;
 
-                try
-                {
-                    // Try parsing as JSON
-                    using var jsonDoc = JsonDocument.Parse(data);
-                    _service.ValidateNode(jsonDoc.RootElement);
-
-                    var options = new JsonSerializerOptions
-                    {
-                        PropertyNameCaseInsensitive = true,
-                    };
-                    newTree = JsonSerializer.Deserialize<AssetNode>(data, options);
-                }
-                catch (JsonException)
+                if (extension == ".json")
                 {
                     try
                     {
-                        // If JSON fails, try XML
-                        var serializer = new XmlSerializer(typeof(AssetNode));
-                        using var reader = new StringReader(data);
-                        newTree = (AssetNode?)serializer.Deserialize(reader);
+                        using var jsonDoc = JsonDocument.Parse(data);
+                        _service.ValidateNode(jsonDoc.RootElement);
+
+                        var options = new JsonSerializerOptions
+                        {
+                            PropertyNameCaseInsensitive = true,
+                        };
+                        newTree = JsonSerializer.Deserialize<AssetNode>(data, options);
                     }
-                    catch (InvalidOperationException)
+                    catch (JsonException ex)
                     {
-                        // Both JSON and XML failed → unsupported format
-                        return BadRequest(new { error = "Unsupported or invalid file format. Only JSON and XML are allowed." });
+                        return BadRequest(new { error = "Invalid JSON format: " + ex.Message });
+                    }
+                }
+                else if (extension == ".xml")
+                {
+                    try
+                    {
+                        var xmlSerializer = new XmlSerializer(typeof(AssetNodeXmlDto));
+                        using var reader = new StringReader(data);
+                        var xmlTree = (AssetNodeXmlDto?)xmlSerializer.Deserialize(reader);
+
+                        if (xmlTree != null)
+                        {
+                            newTree = AssetNodeMapper.MapToDomain(xmlTree);
+                        }
+                    }
+                    catch (InvalidOperationException ex)
+                    {
+                        return BadRequest(new { error = "Invalid XML format: " + ex.Message });
                     }
                 }
 
@@ -243,7 +248,7 @@ namespace AssetHierarchyAPI.Controllers
                     return BadRequest(new { error = "Invalid hierarchy file structure" });
                 }
 
-                // Initialize children collection if null
+                // Ensure child collections are initialized
                 InitializeChildren(newTree);
 
                 // Assign IDs only for non-database storage
@@ -251,17 +256,8 @@ namespace AssetHierarchyAPI.Controllers
                 _service.AssignIds(newTree, ref idCounter);
 
                 await _service.ReplaceTree(newTree);
+
                 return Ok(new { message = "Hierarchy updated successfully" });
-
-
-            }
-            catch (JsonException ex)
-            {
-                return BadRequest(new { error = "Invalid JSON format: " + ex.Message });
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { error = "Invalid XML format: " + ex.Message });
             }
             catch (Exception ex)
             {
@@ -278,9 +274,11 @@ namespace AssetHierarchyAPI.Controllers
 
             foreach (var child in node.Children)
             {
+                child.Parent = node; // restore parent relation manually
                 InitializeChildren(child);
             }
         }
+
 
         [HttpGet("download")]
         [Authorize(Roles = "Admin,Viewer")]
