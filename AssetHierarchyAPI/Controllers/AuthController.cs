@@ -246,7 +246,9 @@ namespace AssetHierarchyAPI.Controllers
             Response.Cookies.Delete("AuthToken", new CookieOptions
             {
                 Path = "/",
-                SameSite = SameSiteMode.Lax
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.None,
             });
             return Ok(new { message = "Logged out" });
         }

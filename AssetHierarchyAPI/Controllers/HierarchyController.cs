@@ -1,9 +1,6 @@
-﻿using AssetHierarchyAPI.Application.DTOs;
-using AssetHierarchyAPI.Application.Interfaces;
-using AssetHierarchyAPI.Application.Mapping;
-using AssetHierarchyAPI.Application.Services;
-using AssetHierarchyAPI.Domain.Models;
+﻿using AssetHierarchyAPI.Domain.Models;
 using AssetHierarchyAPI.Infrastructure.Data;
+using AssetHierarchyAPI.Application.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -11,6 +8,7 @@ using System.Globalization;
 using System.Text.Json;
 using System.Xml.Serialization;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+using AssetHierarchyAPI.Application.Interfaces;
 
 
 namespace AssetHierarchyAPI.Controllers
@@ -121,8 +119,8 @@ namespace AssetHierarchyAPI.Controllers
                 newNode.Id = 0;
                 newNode.Children ??= new List<AssetNode>();
 
-                await _service.AddNode(parentId, newNode);
-                return Ok(new { message = "Node added successfully" });
+                var addedNode = await _service.AddNode(parentId, newNode);
+                return Ok(new { message = "Node added successfully" , addedNode});
             }
             catch (InvalidOperationException ex)
             {
@@ -228,14 +226,10 @@ namespace AssetHierarchyAPI.Controllers
                 {
                     try
                     {
-                        var xmlSerializer = new XmlSerializer(typeof(AssetNodeXmlDto));
-                        using var reader = new StringReader(data);
-                        var xmlTree = (AssetNodeXmlDto?)xmlSerializer.Deserialize(reader);
+                        var xmlSerializer = new XmlSerializer(typeof(AssetNode));
 
-                        if (xmlTree != null)
-                        {
-                            newTree = AssetNodeMapper.MapToDomain(xmlTree);
-                        }
+                        using var reader = new StringReader(data);
+                        newTree = (AssetNode?)xmlSerializer.Deserialize(reader);
                     }
                     catch (InvalidOperationException ex)
                     {

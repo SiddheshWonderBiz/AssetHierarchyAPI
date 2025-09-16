@@ -7,7 +7,7 @@ namespace AssetHierarchyAPI.Application.Interfaces
         Task<List<AssetNode>> GetAllAsync();
         Task<AssetNode?> GetByIdAsync(int id);
         Task<AssetNode?> GetRootAsync();
-        Task AddAsync(AssetNode assetNode);
+        Task<AssetNode> AddAsync(AssetNode assetNode);
         Task UpdateAsync(AssetNode assetNode);
         Task DeleteAsync(AssetNode assetNode);
         Task DeleteRangeAsync(IEnumerable<AssetNode> assetNodes);

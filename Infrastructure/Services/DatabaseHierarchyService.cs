@@ -100,31 +100,22 @@ namespace AssetHierarchyAPI.Infrastructure.Services
         }
 
         // Add a new node
-        public async Task AddNode(int parentId, AssetNode newNode)
+        public async Task<AssetNode> AddNode(int parentId, AssetNode newNode)
         {
             if (string.IsNullOrWhiteSpace(newNode.Name))
                 throw new ArgumentException("Node name cannot be empty.");
             string pattern = @"^[a-zA-Z0-9_\-\s]+$";
-            bool isvalid = Regex.IsMatch(newNode.Name, pattern);
-            if (!isvalid)
-            {
-                throw new ArgumentException("Invalid name pattern allowed only a-z,1-9 and -_");
-            }
+            if (!Regex.IsMatch(newNode.Name, pattern))
+                throw new ArgumentException("Invalid name pattern allowed only a-z,0-9 and -_");
 
             var parent = await _repository.GetByIdAsync(parentId);
             if (parent == null)
-            {
-                _logger.LogError($"Parent with ID {parentId} does not exist.");
                 throw new KeyNotFoundException($"Parent with ID {parentId} does not exist.");
-            }
 
             var siblings = (await _repository.GetAllAsync()).Where(n => n.ParentId == parentId);
-
             if (siblings.Any(n => n.Name.Equals(newNode.Name, StringComparison.OrdinalIgnoreCase)))
-            {
-                _logger.LogError($"Node with name {newNode.Name} already exists under parent {parentId}.");
                 throw new InvalidOperationException($"A node with name '{newNode.Name}' already exists under this parent.");
-            }
+
             var nodeToAdd = new AssetNode
             {
                 Name = newNode.Name,
@@ -133,11 +124,18 @@ namespace AssetHierarchyAPI.Infrastructure.Services
             };
 
             await _repository.AddAsync(nodeToAdd);
-            await _repository.SaveChangesAsync();
+            await _repository.SaveChangesAsync(); // After this, nodeToAdd.Id is generated
 
             await _loggerDb.LogsActionsAsync("Add Node", newNode.Name);
-            await _hubContext.Clients.All.SendAsync("nodeAdded", $"New node {newNode.Name} added under parent {parent.Name}");
 
+            // Send the **actual node** with generated Id
+            await _hubContext.Clients.All.SendAsync("nodeAdded", new
+            {
+                parentId = parentId,
+                node = nodeToAdd
+            });
+
+            return nodeToAdd; // ✅ Return the actual node
         }
 
         // Update node

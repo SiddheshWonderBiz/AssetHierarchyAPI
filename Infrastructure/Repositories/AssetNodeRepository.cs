@@ -26,9 +26,10 @@ namespace AssetHierarchyAPI.Infrastructure.Repositories
         {
             return await _context.AssetNodes.FirstOrDefaultAsync(x => x.ParentId == null);
         }
-        public async Task AddAsync(AssetNode node)
+        public async Task<AssetNode> AddAsync(AssetNode node)
         {
              await _context.AssetNodes.AddAsync(node);
+            return node;
         }
         public async Task UpdateAsync(AssetNode node)
         {

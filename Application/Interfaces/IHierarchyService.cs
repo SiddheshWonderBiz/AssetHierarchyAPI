@@ -6,7 +6,7 @@ namespace AssetHierarchyAPI.Application.Interfaces
     public interface IHierarchyService
     {
         Task<AssetNode> LoadHierarchy();
-        Task AddNode(int parentId, AssetNode newNode);
+        Task<AssetNode> AddNode(int parentId, AssetNode newNode);
         Task RemoveNode(int nodeId);
 
         void AssignIds(AssetNode root, ref int currentId);

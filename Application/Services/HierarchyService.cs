@@ -26,7 +26,7 @@ namespace AssetHierarchyAPI.Application.Services
         public void SaveHierarchy(AssetNode root) => _storage.SaveHierarchy(root);
 
         // Adds a new node 
-        public  Task AddNode(int parentId, AssetNode newNode)
+        public async Task<AssetNode> AddNode(int parentId, AssetNode newNode)
         {
             var root = _storage.LoadHierarchy();
 
@@ -34,24 +34,26 @@ namespace AssetHierarchyAPI.Application.Services
             newNode.Id = maxid + 1;
             newNode.Children = newNode.Children ?? new List<AssetNode>();
 
-            //dupliaction avoidance check
-            if (NodeExists(root, newNode.Id , newNode.Name))
+            if (NodeExists(root, newNode.Id, newNode.Name))
             {
                 _logger.LogError($"Node with ID  {newNode.Name} already exists.");
                 throw new InvalidOperationException($"A node with ID  {newNode.Name} already exists.");
             }
 
-            // Find the parent node where the new node will be added
             var parent = FindNode(root, parentId);
             if (parent != null)
             {
-                parent.Children.Add(newNode);   
-                _storage.SaveHierarchy(root);   
+                parent.Children.Add(newNode);
+                _storage.SaveHierarchy(root);
                 _logger.LogInfo($"Node {newNode.Id}:{newNode.Name} added under parent {parentId}.");
             }
-            return Task.CompletedTask;
 
+            // Simulate async
+            await Task.CompletedTask;
+
+            return newNode;
         }
+
 
 
         //Validate Node
