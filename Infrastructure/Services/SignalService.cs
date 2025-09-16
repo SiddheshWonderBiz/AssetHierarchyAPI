@@ -1,51 +1,39 @@
-﻿using AssetHierarchyAPI.Application.Interfaces;
+﻿using AssetHierarchyAPI.Application.DTOs;
+using AssetHierarchyAPI.Application.Interfaces;
 using AssetHierarchyAPI.Domain.Models;
-using AssetHierarchyAPI.Infrastructure.Data;
 using AssetHierarchyAPI.Infrastructure.Hubs;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.EntityFrameworkCore;
-using AssetHierarchyAPI.Application.DTOs;
-
+using System;
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace AssetHierarchyAPI.Infrastructure.Services
 {
-    public class SignalService : ISignalRepository
+    public class SignalService : ISignalServices
     {
-        private readonly AppDbContext _context;
+        private readonly ISignalRepository _repository;
         private readonly ILoggingServiceDb _loggerdb;
-        private readonly IHubContext<NotificationHub>   _hubContext;
+        private readonly IHubContext<NotificationHub> _hubContext;
 
         private static readonly HashSet<string> allowed =
             new(StringComparer.OrdinalIgnoreCase) { "int", "string", "real" };
 
-        public SignalService(AppDbContext context, ILoggingServiceDb loggerdb , IHubContext<NotificationHub> hubContext)
+        public SignalService(ISignalRepository repository, ILoggingServiceDb loggerdb, IHubContext<NotificationHub> hubContext)
         {
-            _context = context;
+            _repository = repository;
             _loggerdb = loggerdb;
             _hubContext = hubContext;
         }
 
         public async Task<IEnumerable<Signal>> GetByAssetAsync(int assetId)
         {
-            return await _context.Signals
-                .AsNoTracking()
-                .Where(x => x.AssetId == assetId)
-                .OrderBy(x => x.AssetId)
-                .ToListAsync();
+            return await _repository.GetByAssetAsync(assetId);
         }
 
         public async Task<Signal?> GetByIdAsync(int id)
         {
-            return await _context.Signals
-                .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.Id == id);
-        }
-
-        private async Task<bool> DuplicateSignalAsync(GlobalSignalDTO dto, int assetId)
-        {
-            return await _context.Signals
-                .AnyAsync(s => s.AssetId == assetId && s.Name.ToLower() == dto.Name.ToLower());
+            return await _repository.GetByIdAsync(id);
         }
 
         public async Task<Signal> AddSignalAsync(int assetId, GlobalSignalDTO dto)
@@ -59,32 +47,22 @@ namespace AssetHierarchyAPI.Infrastructure.Services
             if (string.IsNullOrWhiteSpace(dto.ValueType))
                 throw new ArgumentException("ValueType cannot be empty");
 
-            if(dto.Name.Length > 50)
-            {
-                throw new ArgumentException("Name cant't be greater than 50 char");
-            }
-            if(dto.Description.Length > 300)
-            {
-                throw new ArgumentException("Description cant't be greater than 300 char");
+            if (dto.Name.Length > 50)
+                throw new ArgumentException("Name can't be greater than 50 characters");
 
-            }
+            if (dto.Description.Length > 300)
+                throw new ArgumentException("Description can't be greater than 300 characters");
 
             string pattern = @"^[a-zA-Z0-9_\-\s]+$";
-            bool isvalid = Regex.IsMatch(dto.Name, pattern);
-            if (!isvalid) {
-                throw new ArgumentException("Invalid name pattern allowed only a-z,1-9 and -_");
-            }
+            if (!Regex.IsMatch(dto.Name, pattern))
+                throw new ArgumentException("Invalid name pattern: only a-z, 0-9, -, _ allowed");
 
             if (!allowed.Contains(dto.ValueType))
                 throw new ArgumentException(
                     $"Invalid value type '{dto.ValueType}'. Allowed: {string.Join(", ", allowed)}"
                 );
 
-            var asset= await _context.AssetNodes.FirstOrDefaultAsync(a => a.Id == assetId);
-            if (asset == null)
-                throw new InvalidOperationException($"Asset with id {assetId} not found.");
-
-            if (await DuplicateSignalAsync(dto, assetId))
+            if (await _repository.ExistsAsync(assetId, dto.Name))
                 throw new InvalidOperationException($"Signal '{dto.Name}' already exists for this asset.");
 
             var signal = new Signal
@@ -95,54 +73,46 @@ namespace AssetHierarchyAPI.Infrastructure.Services
                 AssetId = assetId
             };
 
-            _context.Signals.Add(signal);
-            await _context.SaveChangesAsync();
+            await _repository.AddAsync(signal);
 
             await _loggerdb.LogsActionsAsync("Signal added", signal.Name);
-           await _hubContext.Clients.All.SendAsync("signalAdded", $"Signal {signal.Name} addded under {asset.Name}");
+            await _hubContext.Clients.All.SendAsync("signalAdded", $"Signal {signal.Name} added under Asset {assetId}");
 
             return signal;
         }
 
         public async Task<bool> UpdateSignalAsync(int id, GlobalSignalDTO dto)
         {
-            var signal = await _context.Signals.FirstOrDefaultAsync(s => s.Id == id);
+            var signal = await _repository.GetByIdAsync(id);
             if (signal == null)
                 throw new InvalidOperationException($"Signal with id {id} not found.");
 
             if (dto == null)
-                throw new ArgumentException("Signal cannot be null.");
+                throw new ArgumentException("Signal cannot be null");
 
             if (string.IsNullOrWhiteSpace(dto.Name))
-                throw new ArgumentException("Signal name is required.");
+                throw new ArgumentException("Signal name is required");
 
             if (string.IsNullOrWhiteSpace(dto.ValueType))
-                throw new ArgumentException("Signal value type is required.");
+                throw new ArgumentException("Signal value type is required");
+
             string pattern = @"^[a-zA-Z0-9_\-\s]+$";
-            bool isvalid = Regex.IsMatch(dto.Name, pattern);
-            if (!isvalid)
-            {
-                throw new ArgumentException("Invalid name pattern allowed only a-z,1-9 and -_");
-            }
+            if (!Regex.IsMatch(dto.Name, pattern))
+                throw new ArgumentException("Invalid name pattern: only a-z, 0-9, -, _ allowed");
 
             if (!allowed.Contains(dto.ValueType))
                 throw new ArgumentException(
                     $"Invalid value type '{dto.ValueType}'. Allowed: {string.Join(", ", allowed)}"
                 );
 
-            var duplicate = await _context.Signals
-                .AnyAsync(s => s.AssetId == signal.AssetId &&
-                               s.Name.ToLower() == dto.Name.ToLower() &&
-                               s.Id != id);
-
-            if (duplicate)
+            if (await _repository.ExistsAsync(signal.AssetId, dto.Name, signal.Id))
                 throw new InvalidOperationException($"Signal '{dto.Name}' already exists for this asset.");
 
             signal.Name = dto.Name;
             signal.ValueType = dto.ValueType;
             signal.Description = dto.Description;
 
-            await _context.SaveChangesAsync();
+            await _repository.UpdateAsync(signal);
             await _loggerdb.LogsActionsAsync("Signal updated", signal.Name);
 
             return true;
@@ -150,13 +120,11 @@ namespace AssetHierarchyAPI.Infrastructure.Services
 
         public async Task<bool> DeleteSignalAsync(int id)
         {
-            var signal = await _context.Signals.FirstOrDefaultAsync(s => s.Id == id);
+            var signal = await _repository.GetByIdAsync(id);
             if (signal == null)
                 throw new InvalidOperationException($"Signal with id {id} not found.");
 
-            _context.Signals.Remove(signal);
-            await _context.SaveChangesAsync();
-
+            await _repository.DeleteAsync(signal);
             await _loggerdb.LogsActionsAsync("Signal deleted", signal.Name);
 
             return true;

@@ -10,7 +10,7 @@ namespace AssetHierarchyAPI.Domain.Models
         public string Name { get; set; } = string.Empty;
         public int AssetId { get; set; }
         [JsonIgnore]
-        public AssetNode Asset { get; set; }
+        public AssetNode? Asset { get; set; }
         public string ValueType { get; set; } = string.Empty;
         public string? Description { get; set; }
     }

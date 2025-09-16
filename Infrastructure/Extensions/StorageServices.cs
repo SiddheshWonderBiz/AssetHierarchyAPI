@@ -4,6 +4,7 @@ using AssetHierarchyAPI.Infrastructure.Services;
 using AssetHierarchyAPI.Application.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
+using Infrastructure.Repositories;
 
 
 namespace AssetHierarchyAPI.Infrastructure.Extensions
@@ -16,20 +17,22 @@ namespace AssetHierarchyAPI.Infrastructure.Extensions
             services.AddSingleton<ILoggingService, LoggingService>();
             switch (storageType) {
                 case "XML":
-                    services.AddScoped<IHierarchyStorage, XmlHierarchyStorage>();
-                    services.AddScoped<ISignalRepository , SignalService>();
-                    services.AddScoped<IHierarchyService,HierarchyService>();
+                    services.AddScoped<ISignalRepository, SignalRepository>();
+                    services.AddScoped<ISignalServices, SignalService>(); // ✅ add this
+                    services.AddScoped<IHierarchyService, HierarchyService>();
                     break;
                 case "DB":
-                    //services.AddScoped<IHierarchyStorage, DatabaseHierarchyStorage>();
                     services.AddScoped<IAssetNodeRepository, AssetNodeRepository>();
-                    services.AddScoped<ISignalRepository, SignalService>();
+                    services.AddScoped<ISignalRepository, SignalRepository>();
+                    services.AddScoped<ISignalServices, SignalService>(); // ✅ add this
                     services.AddScoped<IHierarchyService, DatabaseHierarchyService>();
                     services.AddScoped<ILoggingServiceDb, LoggingServiceDb>();
+          
+
                     break;
                 default:
-                    services.AddScoped<IHierarchyStorage, JsonHierarchyStorage>();
-                    services.AddScoped<ISignalRepository, SignalService>();
+                    services.AddScoped<ISignalRepository, SignalRepository>();
+                    services.AddScoped<ISignalServices, SignalService>(); // ✅ add this
                     services.AddScoped<IHierarchyService, HierarchyService>();
                     break;
             }

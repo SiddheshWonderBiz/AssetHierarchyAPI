@@ -1,5 +1,4 @@
 ﻿using AssetHierarchyAPI.Domain.Models;
-using AssetHierarchyAPI.Application.DTOs;
 
 namespace AssetHierarchyAPI.Application.Interfaces
 {
@@ -7,8 +6,9 @@ namespace AssetHierarchyAPI.Application.Interfaces
     {
         Task<IEnumerable<Signal>> GetByAssetAsync(int assetId);
         Task<Signal?> GetByIdAsync(int id);
-        Task<Signal> AddSignalAsync(int assetId, GlobalSignalDTO signals);
-        Task<bool> UpdateSignalAsync(int id, GlobalSignalDTO updated);
-        Task<bool> DeleteSignalAsync(int id);
+        Task AddAsync(Signal signal);
+        Task UpdateAsync(Signal signal);
+        Task DeleteAsync(Signal signal);
+        Task<bool> ExistsAsync(int assetId, string signalName, int? excludeId = null);
     }
 }

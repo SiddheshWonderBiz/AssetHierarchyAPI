@@ -9,23 +9,23 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace AssetHierarchyAPI.Migrations
+namespace Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250911044604_makepassnullable")]
-    partial class makepassnullable
+    [Migration("20250916062935_cleanedversion")]
+    partial class cleanedversion
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.8")
+                .HasAnnotation("ProductVersion", "9.0.9")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("AssetHierarchyAPI.Models.AssetLog", b =>
+            modelBuilder.Entity("AssetHierarchyAPI.Domain.Models.AssetLog", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -35,28 +35,32 @@ namespace AssetHierarchyAPI.Migrations
 
                     b.Property<string>("Action")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("Role")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("TargetName")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<DateTime>("TimeStamp")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Username")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Assetslogs");
+                    b.ToTable("AssetLogs");
                 });
 
-            modelBuilder.Entity("AssetHierarchyAPI.Models.AssetNode", b =>
+            modelBuilder.Entity("AssetHierarchyAPI.Domain.Models.AssetNode", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -79,7 +83,7 @@ namespace AssetHierarchyAPI.Migrations
                     b.ToTable("AssetNodes");
                 });
 
-            modelBuilder.Entity("AssetHierarchyAPI.Models.Signals", b =>
+            modelBuilder.Entity("AssetHierarchyAPI.Domain.Models.Signal", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -91,7 +95,8 @@ namespace AssetHierarchyAPI.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -100,7 +105,8 @@ namespace AssetHierarchyAPI.Migrations
 
                     b.Property<string>("ValueType")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.HasKey("Id");
 
@@ -109,7 +115,7 @@ namespace AssetHierarchyAPI.Migrations
                     b.ToTable("Signals");
                 });
 
-            modelBuilder.Entity("AssetHierarchyAPI.Models.User", b =>
+            modelBuilder.Entity("AssetHierarchyAPI.Domain.Models.User", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -118,19 +124,23 @@ namespace AssetHierarchyAPI.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Password")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("Role")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("UserEmail")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("Username")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.HasKey("Id");
 
@@ -150,19 +160,18 @@ namespace AssetHierarchyAPI.Migrations
                         });
                 });
 
-            modelBuilder.Entity("AssetHierarchyAPI.Models.AssetNode", b =>
+            modelBuilder.Entity("AssetHierarchyAPI.Domain.Models.AssetNode", b =>
                 {
-                    b.HasOne("AssetHierarchyAPI.Models.AssetNode", "Parent")
+                    b.HasOne("AssetHierarchyAPI.Domain.Models.AssetNode", "Parent")
                         .WithMany("Children")
-                        .HasForeignKey("ParentId")
-                        .OnDelete(DeleteBehavior.ClientCascade);
+                        .HasForeignKey("ParentId");
 
                     b.Navigation("Parent");
                 });
 
-            modelBuilder.Entity("AssetHierarchyAPI.Models.Signals", b =>
+            modelBuilder.Entity("AssetHierarchyAPI.Domain.Models.Signal", b =>
                 {
-                    b.HasOne("AssetHierarchyAPI.Models.AssetNode", "Asset")
+                    b.HasOne("AssetHierarchyAPI.Domain.Models.AssetNode", "Asset")
                         .WithMany("Signals")
                         .HasForeignKey("AssetId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -171,7 +180,7 @@ namespace AssetHierarchyAPI.Migrations
                     b.Navigation("Asset");
                 });
 
-            modelBuilder.Entity("AssetHierarchyAPI.Models.AssetNode", b =>
+            modelBuilder.Entity("AssetHierarchyAPI.Domain.Models.AssetNode", b =>
                 {
                     b.Navigation("Children");
 

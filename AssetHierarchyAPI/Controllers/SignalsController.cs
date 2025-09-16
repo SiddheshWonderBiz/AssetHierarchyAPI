@@ -4,25 +4,24 @@ using AssetHierarchyAPI.Domain.Models;
 using AssetHierarchyAPI.Application.Interfaces;
 using AssetHierarchyAPI.Application.DTOs;
 
-
 namespace AssetHierarchyAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
     public class SignalsController : ControllerBase
     {
-        private readonly ISignalRepository _signals;
+        private readonly ISignalServices _signalService;
 
-        public SignalsController(ISignalRepository signals)
+        public SignalsController(ISignalServices signalService)
         {
-            _signals = signals;
+            _signalService = signalService;
         }
 
         // GET all signals for an asset
         [HttpGet("asset/{assetId}")]
         public async Task<ActionResult<IEnumerable<Signal>>> GetByAssetAsync(int assetId)
         {
-            var signals = await _signals.GetByAssetAsync(assetId);
+            var signals = await _signalService.GetByAssetAsync(assetId);
 
             if (signals == null || !signals.Any())
                 return NotFound(new { error = $"No signals found for asset {assetId}" });
@@ -31,24 +30,24 @@ namespace AssetHierarchyAPI.Controllers
         }
 
         // GET a single signal by id
-        [HttpGet("asset/{assetId}/signals/{id}")]
-        public async Task<ActionResult<Signal>> GetByIdAsync(int assetId, int id)
+        [HttpGet("signals/{id}")]
+        public async Task<ActionResult<Signal>> GetByIdAsync(int id)
         {
-            var sig = await _signals.GetByIdAsync(id);
-            if (sig == null)
+            var signal = await _signalService.GetByIdAsync(id);
+            if (signal == null)
                 return NotFound(new { error = $"Signal {id} not found" });
 
-            return Ok(sig);
+            return Ok(signal);
         }
 
         // POST - add signal
-        [HttpPost("asset/{assetId}/Addsignal")]
+        [HttpPost("asset/{assetId}/add")]
         [Authorize(Roles = "Admin,Viewer")]
         public async Task<IActionResult> CreateSignalAsync(int assetId, [FromBody] GlobalSignalDTO data)
         {
             try
             {
-                var created = await _signals.AddSignalAsync(assetId, data);
+                var created = await _signalService.AddSignalAsync(assetId, data);
                 return Ok(new
                 {
                     message = "Created Signal Successfully",
@@ -62,13 +61,13 @@ namespace AssetHierarchyAPI.Controllers
         }
 
         // PUT - update signal
-        [HttpPut("asset/{assetId}/{id}")]
+        [HttpPut("{id}")]
         [Authorize(Roles = "Admin,Viewer")]
         public async Task<IActionResult> UpdateSignalAsync(int id, [FromBody] GlobalSignalDTO data)
         {
             try
             {
-                var updated = await _signals.UpdateSignalAsync(id, data);
+                var updated = await _signalService.UpdateSignalAsync(id, data);
                 return Ok(new { message = "Signal updated successfully", success = updated });
             }
             catch (Exception ex)
@@ -78,13 +77,13 @@ namespace AssetHierarchyAPI.Controllers
         }
 
         // DELETE - delete signal
-        [HttpDelete("asset/{assetId}/{id}")]
+        [HttpDelete("{id}")]
         [Authorize(Roles = "Admin,Viewer")]
         public async Task<IActionResult> DeleteSignalAsync(int id)
         {
             try
             {
-                var deleted = await _signals.DeleteSignalAsync(id);
+                var deleted = await _signalService.DeleteSignalAsync(id);
                 return Ok(new { message = "Signal deleted successfully", success = deleted });
             }
             catch (Exception ex)
@@ -93,6 +92,4 @@ namespace AssetHierarchyAPI.Controllers
             }
         }
     }
-
-
 }

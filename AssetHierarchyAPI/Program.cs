@@ -23,7 +23,12 @@ builder.Host.UseSerilog();
 
 // EF Core
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("Connect")));
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("Connect"),
+        sql => sql.MigrationsAssembly("Infrastructure") // <-- migrations in Infrastructure
+    )
+);
+
 
 // CORS for frontend
 builder.Services.AddCors(options =>
