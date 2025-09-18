@@ -182,7 +182,7 @@ namespace AssetHierarchyAPI.Controllers
                 Path = "/"
             });
 
-            // ✅ Clear the temporary external cookie
+            //   Clear the temporary external cookie
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
 
             return Redirect("http://localhost:5173/auth-success");

@@ -18,13 +18,13 @@ namespace AssetHierarchyAPI.Infrastructure.Extensions
             switch (storageType) {
                 case "XML":
                     services.AddScoped<ISignalRepository, SignalRepository>();
-                    services.AddScoped<ISignalServices, SignalService>(); // ✅ add this
+                    services.AddScoped<ISignalServices, SignalService>(); //   add this
                     services.AddScoped<IHierarchyService, HierarchyService>();
                     break;
                 case "DB":
                     services.AddScoped<IAssetNodeRepository, AssetNodeRepository>();
                     services.AddScoped<ISignalRepository, SignalRepository>();
-                    services.AddScoped<ISignalServices, SignalService>(); // ✅ add this
+                    services.AddScoped<ISignalServices, SignalService>(); //   add this
                     services.AddScoped<IHierarchyService, DatabaseHierarchyService>();
                     services.AddScoped<IAssetLogRepository, AssetLogRepository>();
                     services.AddScoped<ILoggingServiceDb, LoggingServiceDb>();
@@ -33,7 +33,7 @@ namespace AssetHierarchyAPI.Infrastructure.Extensions
                     break;
                 default:
                     services.AddScoped<ISignalRepository, SignalRepository>();
-                    services.AddScoped<ISignalServices, SignalService>(); // ✅ add this
+                    services.AddScoped<ISignalServices, SignalService>(); //   add this
                     services.AddScoped<IHierarchyService, HierarchyService>();
                     break;
             }

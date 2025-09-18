@@ -135,7 +135,7 @@ namespace AssetHierarchyAPI.Infrastructure.Services
                 node = nodeToAdd
             });
 
-            return nodeToAdd; // ✅ Return the actual node
+            return nodeToAdd; // Return the actual node
         }
 
         // Update node

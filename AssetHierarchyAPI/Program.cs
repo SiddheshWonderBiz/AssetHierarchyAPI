@@ -11,6 +11,7 @@ using Serilog;
 using Serilog.Ui.Web;
 using System.Security.Claims;
 using System.Text;
+using Infrastructure.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -45,6 +46,7 @@ builder.Services.AddSwaggerGen();
 
 // Storage service extension
 builder.Services.AddStorageService(builder.Configuration);
+builder.Services.AddBackgroundSevice();
 
 // Serilog UI
 builder.Services.AddSerilogUi(_ => { });
@@ -52,7 +54,7 @@ builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme; // ✅ important
+    options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme; //   important
 })
 .AddJwtBearer(options =>
 {
