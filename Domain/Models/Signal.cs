@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Domain.Models;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
 
@@ -13,5 +14,7 @@ namespace AssetHierarchyAPI.Domain.Models
         public AssetNode? Asset { get; set; }
         public string ValueType { get; set; } = string.Empty;
         public string? Description { get; set; }
+
+        public List<SignalValue> Values { get; set; } = new List<SignalValue>();
     }
 }

@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class cleanedversion : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -85,6 +85,26 @@ namespace Infrastructure.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "SignalValues",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    SignalId = table.Column<int>(type: "int", nullable: false),
+                    Value = table.Column<double>(type: "float", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SignalValues", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_SignalValues_Signals_SignalId",
+                        column: x => x.SignalId,
+                        principalTable: "Signals",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
             migrationBuilder.InsertData(
                 table: "Users",
                 columns: new[] { "Id", "Password", "Role", "UserEmail", "Username" },
@@ -101,6 +121,11 @@ namespace Infrastructure.Migrations
                 column: "AssetId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_SignalValues_SignalId",
+                table: "SignalValues",
+                column: "SignalId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Users_Username",
                 table: "Users",
                 column: "Username",
@@ -114,10 +139,13 @@ namespace Infrastructure.Migrations
                 name: "AssetLogs");
 
             migrationBuilder.DropTable(
-                name: "Signals");
+                name: "SignalValues");
 
             migrationBuilder.DropTable(
                 name: "Users");
+
+            migrationBuilder.DropTable(
+                name: "Signals");
 
             migrationBuilder.DropTable(
                 name: "AssetNodes");

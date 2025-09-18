@@ -1,7 +1,9 @@
-﻿using AssetHierarchyAPI.Infrastructure.Extensions;
-using AssetHierarchyAPI.Infrastructure.Data;
+﻿using AssetHierarchyAPI.Infrastructure.Data;
+using AssetHierarchyAPI.Infrastructure.Extensions;
 using AssetHierarchyAPI.Infrastructure.Hubs;
 using AssetHierarchyAPI.Middleware;
+using Infrastructure.Data;
+using Infrastructure.Extensions;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -11,7 +13,6 @@ using Serilog;
 using Serilog.Ui.Web;
 using System.Security.Claims;
 using System.Text;
-using Infrastructure.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -112,6 +113,14 @@ builder.Services.AddAuthorization();
 builder.Services.AddSignalR();
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    context.Database.Migrate(); // Apply migrations
+    DbInitializer.Seed(context); // Seed demo signal and values
+}
+
 
 app.UseMiddleware<ErrorHandlingMiddleware>();
 app.UseHttpsRedirection();

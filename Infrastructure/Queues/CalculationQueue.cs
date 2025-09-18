@@ -13,8 +13,11 @@ namespace Infrastructure.Queues
     {
         private readonly ConcurrentQueue<CalculationJob> _jobs = new();
 
-        public void Enqueue(CalculationJob job) => _jobs.Enqueue(job);
+        public void Enqueue(CalculationJob job) { _jobs.Enqueue(job); }
 
-        public bool TryDequeue(out CalculationJob job) => _jobs.TryDequeue(out job);
+        public bool TryDequeue(out CalculationJob job)
+        {
+            return _jobs.TryDequeue(out job);
+        }
     }
 }

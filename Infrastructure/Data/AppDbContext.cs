@@ -1,4 +1,5 @@
 ﻿using AssetHierarchyAPI.Domain.Models;
+using Domain.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace AssetHierarchyAPI.Infrastructure.Data
@@ -9,6 +10,7 @@ namespace AssetHierarchyAPI.Infrastructure.Data
 
         public DbSet<AssetNode> AssetNodes { get; set; }
         public DbSet<Signal> Signals { get; set; }
+        public DbSet<SignalValue> SignalValues { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<AssetLog> AssetLogs { get; set; }
 

@@ -16,10 +16,10 @@ namespace AssetHierarchyAPI.Controllers
         }
 
         [HttpPost("avg")]
-        public IActionResult CalculateAvg([FromQuery] string colname)
+        public IActionResult CalculateAvg([FromQuery] int signalid)
         {
-            _queue.Enqueue(new CalculationJob { ColumnName = colname });
-            return Accepted(new {message = $"Caluclation for {colname} queued"});
+            _queue.Enqueue(new CalculationJob { SignalId = signalid });
+            return Accepted(new {message = $"Caluclation for {signalid} queued"});
         }
 
     }

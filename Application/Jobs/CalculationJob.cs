@@ -8,6 +8,6 @@ namespace Application.Jobs
 {
     public class CalculationJob
     {
-        public string ColumnName { get; set; }  
+        public int SignalId { get; set; }  
     }
 }

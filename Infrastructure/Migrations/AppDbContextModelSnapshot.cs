@@ -157,6 +157,27 @@ namespace Infrastructure.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Domain.Models.SignalValue", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("SignalId")
+                        .HasColumnType("int");
+
+                    b.Property<double>("Value")
+                        .HasColumnType("float");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SignalId");
+
+                    b.ToTable("SignalValues");
+                });
+
             modelBuilder.Entity("AssetHierarchyAPI.Domain.Models.AssetNode", b =>
                 {
                     b.HasOne("AssetHierarchyAPI.Domain.Models.AssetNode", "Parent")
@@ -177,11 +198,27 @@ namespace Infrastructure.Migrations
                     b.Navigation("Asset");
                 });
 
+            modelBuilder.Entity("Domain.Models.SignalValue", b =>
+                {
+                    b.HasOne("AssetHierarchyAPI.Domain.Models.Signal", "Signal")
+                        .WithMany("Values")
+                        .HasForeignKey("SignalId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Signal");
+                });
+
             modelBuilder.Entity("AssetHierarchyAPI.Domain.Models.AssetNode", b =>
                 {
                     b.Navigation("Children");
 
                     b.Navigation("Signals");
+                });
+
+            modelBuilder.Entity("AssetHierarchyAPI.Domain.Models.Signal", b =>
+                {
+                    b.Navigation("Values");
                 });
 #pragma warning restore 612, 618
         }

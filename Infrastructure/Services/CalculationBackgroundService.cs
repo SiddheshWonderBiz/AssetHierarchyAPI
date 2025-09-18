@@ -36,18 +36,15 @@ namespace Infrastructure.Services
                     using var scope = _scopeFactory.CreateScope();
                     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
+                    var signal = await db.Signals.Include(s=>s.Values).FirstOrDefaultAsync(s => s.Id == job.SignalId , stoppingToken);
                     double avg = 0;
-
-                    if (job.ColumnName.Equals("Id", StringComparison.OrdinalIgnoreCase))
-                    {
-                        avg = await db.AssetNodes.AverageAsync(x => x.Id, stoppingToken);
+                    if (signal != null && signal.Values.Any()) { 
+                    avg = signal.Values.Average(v =>  v.Value);
                     }
-                    else if (job.ColumnName.Equals("NameLength", StringComparison.OrdinalIgnoreCase))
-                    {
-                        avg = await db.AssetNodes.AverageAsync(x => x.Name.Length, stoppingToken);
-                    }
-
-                    await _hubContext.Clients.All.SendAsync("ReceiveAverageResult", new {Column = job.ColumnName , Average = avg },cancellationToken:stoppingToken);
+                    await _hubContext.Clients.All.SendAsync(
+                                           "ReceiveAverageResult",
+                                           new { SignalId = job.SignalId,  Average = avg },
+                                           cancellationToken: stoppingToken);
                 }
                 else
                 {
