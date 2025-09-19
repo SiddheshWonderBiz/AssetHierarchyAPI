@@ -307,33 +307,32 @@ namespace AssetHierarchyAPI.Application.Services
         }
 
         //to add new hierarchy 
-        public Task AddHierarchy(AssetNode node )
+        public Task<AssetNode> AddHierarchy(AssetNode node)
         {
-            var tree = _storage.LoadHierarchy();
-            if(tree.Children == null)
-            {
+            var tree = _storage.LoadHierarchy(); // synchronous
+            if (tree.Children == null)
                 tree.Children = new List<AssetNode>();
-            }
 
             int maxid = FindMaxId(tree);
             node.Id = maxid + 1;
 
-            if(node.Children == null)
-            {
+            if (node.Children == null)
                 node.Children = new List<AssetNode>();
-            }
 
             if (NodeExists(tree, node.Id, node.Name))
             {
-                _logger.LogError($"A node with  {node.Name} already exists.");
+                _logger.LogError($"A node with {node.Name} already exists.");
                 throw new InvalidOperationException($"A node with {node.Name} already exists.");
             }
+
             tree.Children.Add(node);
-            _storage.SaveHierarchy(tree);
-            return Task.CompletedTask;
+            _storage.SaveHierarchy(tree); // synchronous
+
+            return Task.FromResult(tree); // wrap in Task
         }
 
-       // id auto genration 
+
+        // id auto genration 
         public void AssignIds(AssetNode node, ref int currentId)
         {
             if (node == null) return;

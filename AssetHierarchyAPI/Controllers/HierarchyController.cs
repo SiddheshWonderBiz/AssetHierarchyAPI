@@ -68,8 +68,10 @@ namespace AssetHierarchyAPI.Controllers
                 if (newHierarchy == null)
                     return BadRequest(new { error = "Invalid hierarchy data" });
 
-                await _service.AddHierarchy(newHierarchy);
-                return Ok(new { message = "Hierarchy added successfully" });
+                var addedHierarchy = await _service.AddHierarchy(newHierarchy);
+
+                // Return the created hierarchy object
+                return Ok(new { message = "Hierarchy added successfully", addedHierarchy });
             }
             catch (InvalidOperationException ex)
             {
@@ -80,6 +82,7 @@ namespace AssetHierarchyAPI.Controllers
                 return StatusCode(500, new { error = "Unexpected error occurred: " + ex.Message });
             }
         }
+
 
         [HttpPost("reorder")]
         [Authorize(Roles = "Admin")]

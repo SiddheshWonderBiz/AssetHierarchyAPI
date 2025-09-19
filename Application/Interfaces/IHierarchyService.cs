@@ -12,7 +12,7 @@ namespace AssetHierarchyAPI.Application.Interfaces
         void AssignIds(AssetNode root, ref int currentId);
         Task<bool> UpdateNodeName(int id, string newName);
         Task<int> CountNodes();
-        Task AddHierarchy(AssetNode node);
+        Task<AssetNode> AddHierarchy(AssetNode node);
         Task ReplaceTree(AssetNode node);
 
         Task<string> ReorderNode(int id, int? newparentId);

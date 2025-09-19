@@ -212,7 +212,7 @@ namespace AssetHierarchyAPI.Infrastructure.Services
         }
 
         // Add complete hierarchy
-        public async Task AddHierarchy(AssetNode node)
+        public async Task<AssetNode> AddHierarchy(AssetNode node)
         {
             if (node == null)
                 throw new ArgumentException("Hierarchy cannot be null.");
@@ -226,21 +226,27 @@ namespace AssetHierarchyAPI.Infrastructure.Services
                     ParentId = null
                 };
                 await _repository.AddAsync(root);
-                await _repository.SaveChangesAsync();
+                await _repository.SaveChangesAsync(); // ID assigned here
             }
+
+            // Validate node name
             string pattern = @"^[a-zA-Z0-9_\-\s]+$";
-            bool isvalid = Regex.IsMatch(node.Name, pattern);
-            if (!isvalid)
+            bool isValid = Regex.IsMatch(node.Name, pattern);
+            if (!isValid)
             {
                 throw new ArgumentException("Invalid name pattern allowed only a-z,1-9 and -_");
             }
-            await AddNodeRecursively(node, root.Id);
-            await _repository.SaveChangesAsync();
 
+            // Add node under root and get the fully saved node with ID
+            var addedNode = await AddNodeRecursively(node, root.Id);
+
+            await _repository.SaveChangesAsync();
             await _loggerDb.LogsActionsAsync("Add Hierarchy", node.Name ?? "Unnamed Hierarchy");
+
+            return addedNode; // <--- Return the actual saved node with ID
         }
 
-        private async Task AddNodeRecursively(AssetNode node, int? parentId)
+        private async Task<AssetNode> AddNodeRecursively(AssetNode node, int? parentId)
         {
 
             if (string.IsNullOrWhiteSpace(node.Name))
@@ -280,6 +286,7 @@ namespace AssetHierarchyAPI.Infrastructure.Services
                     await AddNodeRecursively(child, entity.Id);
                 }
             }
+            return entity;
         }
 
         // Replace full tree
