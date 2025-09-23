@@ -3,7 +3,7 @@ using AssetHierarchyAPI.Infrastructure.Extensions;
 using AssetHierarchyAPI.Infrastructure.Hubs;
 using AssetHierarchyAPI.Middleware;
 using Infrastructure.Data;
-using Infrastructure.Extensions;
+using AssetHierarchyAPI.Infrastructure.Extensions;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -47,7 +47,6 @@ builder.Services.AddSwaggerGen();
 
 // Storage service extension
 builder.Services.AddStorageService(builder.Configuration);
-builder.Services.AddBackgroundSevice();
 
 // Serilog UI
 builder.Services.AddSerilogUi(_ => { });
@@ -111,6 +110,8 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 builder.Services.AddSignalR();
+builder.Services.AddHttpClient();
+
 
 var app = builder.Build();
 
@@ -137,6 +138,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseSerilogUi();
+
 app.MapControllers();
 app.MapHub<NotificationHub>("/notificationHub");
 

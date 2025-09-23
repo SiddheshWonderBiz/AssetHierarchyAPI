@@ -1,26 +1,29 @@
-﻿using Application.Interfaces;
-using Application.Jobs;
+﻿// AssetHierarchyAPI/Controllers/CalculationController.cs
 using Microsoft.AspNetCore.Mvc;
+using System.Net.Http;
+using System.Threading.Tasks;
 
-namespace AssetHierarchyAPI.Controllers
+[ApiController]
+[Route("api/[controller]")]
+public class CalculationController : ControllerBase
 {
-    [ApiController]
-    [Route("api/[controller]")]
-    public class CalculationController : ControllerBase
+    private readonly IHttpClientFactory _httpFactory;
+    private const string WorkerBaseUrl = "http://localhost:6000"; 
+
+    public CalculationController(IHttpClientFactory httpFactory)
     {
-        private readonly ICalculationQueue _queue;
+        _httpFactory = httpFactory;
+    }
 
-        public CalculationController(ICalculationQueue queue)
-        {
-            _queue = queue;
-        }
+    [HttpPost("avg")]
+    public async Task<IActionResult> TriggerCalculation([FromQuery] int signalId)
+    {
+        var client = _httpFactory.CreateClient();
+        var resp = await client.PostAsync($"{WorkerBaseUrl}/enqueue?signalId={signalId}", null);
 
-        [HttpPost("avg")]
-        public IActionResult CalculateAvg([FromQuery] int signalid)
-        {
-            _queue.Enqueue(new CalculationJob { SignalId = signalid });
-            return Accepted(new {message = $"Caluclation for {signalid} queued"});
-        }
+        if (!resp.IsSuccessStatusCode)
+            return StatusCode((int)resp.StatusCode, "Failed to enqueue at worker.");
 
+        return Accepted(new { message = $"SignalId {signalId} sent to worker" });
     }
 }
