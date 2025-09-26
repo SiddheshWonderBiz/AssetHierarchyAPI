@@ -119,7 +119,7 @@ using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     context.Database.Migrate(); // Apply migrations
-    DbInitializer.Seed(context); // Seed demo signal and values
+    //DbInitializer.Seed(context); // Seed demo signal and values
 }
 
 
